@@ -1,7 +1,7 @@
 package gitlet;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author cyc
  */
 public class Main {
 
@@ -19,6 +19,16 @@ public class Main {
                 // TODO: handle the `add [filename]` command
                 break;
             // TODO: FILL THE REST IN
+            case "commit":
+                // TODO: handle the 'commit [message]' command
+                break;
+            case "checkout":
+                // TODO: handle the 'checkout -- [file name]' and the 'checkout [commit id] -- [file name]' command
+                break;
+            case "log":
+                // TODO: handle the 'log' command
+                break;
+
         }
     }
 }

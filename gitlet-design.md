@@ -1,10 +1,10 @@
 # Gitlet Design Document
 
-**Name**:
+**Name**: cyc
 
 ## Classes and Data Structures
 
-### Class 1
+### Class 1: commit
 
 #### Fields
 

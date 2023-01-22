@@ -81,9 +81,9 @@ public class Commit implements Serializable {
      *  commits.
      * */
    public String getCommitSHA1() {
-       String sha1 = Utils.sha1(this.message, this.timestamp, this.fileToBlob, this.parent);
        // TODO: which sha1 methond should I use? I have no idea.....
-       return sha1;
+       //return Utils.sha1(this.message, this.timestamp, this.fileToBlob, this.parent);
+       return Utils.sha1(this.message);
    }
 
    public HashMap<String, String> getFileToBlob() {

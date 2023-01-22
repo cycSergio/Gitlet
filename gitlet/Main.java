@@ -13,14 +13,17 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                Repository.initCommand();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                String addFile = args[1];
+                Repository.addCommand(addFile);
                 break;
             // TODO: FILL THE REST IN
             case "commit":
                 // TODO: handle the 'commit [message]' command
+                String message = args[1]; // TODO: how to deal with several arguments?
+                Repository.commitCommand(message);
                 break;
             case "checkout":
                 // TODO: handle the 'checkout -- [file name]' and the 'checkout [commit id] -- [file name]' command

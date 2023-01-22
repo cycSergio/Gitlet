@@ -73,7 +73,7 @@ public class Repository {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Utils.writeContents(Staging_Area, Staging_Area); // I want to make Staging Area a HashMap for indexes.
+        Utils.writeObject(Staging_Area, StagingIndex); // I want to make Staging Area a HashMap for indexes.
 
         Commit initialCommit = new Commit();
         File initialCommitFile = join(commits, initialCommit.getCommitSHA1()); // TODO: style?
@@ -137,7 +137,7 @@ public class Repository {
      *  TODO: clear the staging area
      */
     public static void commitCommand(String message) {
-        String parent = readObject(HEAD, String.class); // TODO: 每个文件是什么数据类型，这些都要写清楚鸭！
+        String parent = readObject(HEAD, String.class); // TODO: keep updating? files have what data type??
         File parFile = join(commits, parent);
         Commit parCom = readObject(parFile, Commit.class);
 
@@ -149,7 +149,7 @@ public class Repository {
 
     /* A helper method for commitCommand to correctly get all the tracked files
      *  from the staging area.
-     */  // TODO: 写注释的规范是什么？指格式上而不是内容上。
+     */  // TODO: how to write comments properly? Style
     private static HashMap<String, String> getIndexes(HashMap<String, String>parentHM, HashMap<String, String>SA) {
         SA.forEach((filename, sha1) -> {
             parentHM.putIfAbsent(filename, sha1);

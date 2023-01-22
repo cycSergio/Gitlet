@@ -39,7 +39,7 @@ public class Commit implements Serializable {
 
     /** The mapping of file names to blob references for this commit. */
     private HashMap<String, String> fileToBlob;
-    // TODO: fileToBlob or indexes?? 记得要统一命名逻辑鸭，应该让人一看就知道是干嘛的
+    // TODO: fileToBlob or indexes?? you need to uniform the rules
 
     /** The parent of this commit. */
     private String parent;
@@ -53,7 +53,7 @@ public class Commit implements Serializable {
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
-        this.parent = null; // TODO: 需要给initial commit赋一个null值吗？？
+        this.parent = null; // TODO: give initial commit a null?
     }
 
     /* The constructor for general commits. */

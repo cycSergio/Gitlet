@@ -5,6 +5,8 @@ package gitlet;
 import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 /** Represents a gitlet commit object.
  *  What this Class does at a high level:
@@ -53,7 +55,9 @@ public class Commit implements Serializable {
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
-        this.parent = null; // TODO: give initial commit a null?
+        this.parent = ""; // TODO: give initial commit a null? or ""?
+        // if give this.parent a null, the sha1 method will break;
+
     }
 
     /* The constructor for general commits. */
@@ -62,11 +66,19 @@ public class Commit implements Serializable {
      *  TODO: modify the former constructor for initial commit
      *
      * */
-    public Commit(String message, String parent, HashMap<String, String>fileToBlob) { // TODO: how do I receive this message argument from my users?
+    public Commit(String message, String parent, HashMap<String, String> fileToBlob) { // TODO: how do I receive this message argument from my users?
         this.message = message;
         this.parent = parent;
         this.fileToBlob = fileToBlob;
         // TODO: how to retrieve the Date???
+    }
+
+    /* A helper method to get the corresponding String Lists from the
+     *  fileToBlob HashMap, so that the sha1 method can work out with
+     *  the proper parameter type.
+     */
+    private LinkedList<String> getTrackingFiles(HashMap<String, String> fileToBlob) {
+        return new LinkedList<>(fileToBlob.values()); // wooo, simplified by this smart boy!!!! amazing!
     }
 
     /** the hashing method for this commit
@@ -81,9 +93,13 @@ public class Commit implements Serializable {
      *  commits.
      * */
    public String getCommitSHA1() {
+       LinkedList<String> ref = getTrackingFiles(this.fileToBlob);
+       LinkedList<String> test = new LinkedList<>();
+       test.add("shshshs11111");
        // TODO: which sha1 methond should I use? I have no idea.....
-       //return Utils.sha1(this.message, this.timestamp, this.fileToBlob, this.parent);
-       return Utils.sha1(this.message);
+       String strTrackings = this.fileToBlob.toString();
+       String strTime = this.timestamp.toString();
+       return Utils.sha1(this.message, this.parent, strTime, strTrackings);
    }
 
    public HashMap<String, String> getFileToBlob() {

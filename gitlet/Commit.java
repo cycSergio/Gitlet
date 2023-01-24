@@ -93,10 +93,6 @@ public class Commit implements Serializable {
      *  commits.
      * */
    public String getCommitSHA1() {
-       LinkedList<String> ref = getTrackingFiles(this.fileToBlob);
-       LinkedList<String> test = new LinkedList<>();
-       test.add("shshshs11111");
-       // TODO: which sha1 methond should I use? I have no idea.....
        String strTrackings = this.fileToBlob.toString();
        String strTime = this.timestamp.toString();
        return Utils.sha1(this.message, this.parent, strTime, strTrackings);

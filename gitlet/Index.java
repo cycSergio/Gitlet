@@ -12,9 +12,16 @@ public class Index implements Serializable {
     private String fileName;
     private String blobSHA1;
 
+    /* Constructor for addition. */
     public Index(String fileName, String blobSHA1) {
         this.fileName = fileName;
         this.blobSHA1 = blobSHA1;
+    }
+
+    /* Constructor for removal. */
+    public Index(String fileName) {
+        this.fileName = fileName;
+        this.blobSHA1 = null; // TODO: is null a proper value for my purpose??
     }
 
     public String getFileName() {

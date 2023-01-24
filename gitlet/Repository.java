@@ -44,18 +44,6 @@ public class Repository {
      * TODO: create all the rest of the things in the .gitlet that we need
      * TODO: somehow make the initial commit by using some constructor in the Commit Class and serialize it
      * TODO: somehow fail if a Gitlet version-control system exists in the current directory
-     * <p>
-     * .gitlet
-     * -- COMMIT_EDITMSG
-     * -- HEAD
-     * -- config
-     * -- description
-     * -- index
-     * -- hooks/
-     * -- info/
-     * -- objects/
-     * -- logs/
-     * -- refs/
      */
     public static void initCommand() { // why static? cause I want to be able to call this method, without newing
         // an object of Repository. And "static" enables this.
@@ -109,11 +97,42 @@ public class Repository {
      */
     public static void addCommand(String addFile) {
         File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
-        byte[] addFileContents = readContents(FileToAdd);
+        HashMap<String, String> curComTrackings = curTrackings();
+        HashMap<String, String> curSA = getSA();
+        if (!FileToAdd.exists()) {
+            if (!curComTrackings.containsKey(addFile)) { // This means it's not the case that
+                // the user staged this file for removal because the current commit doesn't hava
+                // this key of filename.
+                Utils.message("File does not exist."); // This is the failure cases, meaning that
+                // the user is trying to stage a nonexistent file for addition.
+                return;
+            }
+            else {
+                Index removalIndex = new Index(addFile);
+                if (curSA.containsKey(addFile)) {
+                    curSA.replace(addFile, removalIndex.getBlobSHA1());
+                    return;
+                } else {
+                    curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
+                }
+                writeObject(Staging_Area, curSA);
+                return;
+            }
+        }
+        byte[] addFileContents = readContents(FileToAdd); // TODO: or read as String?
+
+        String addFileSha1 = Utils.sha1(stagedFileNameContent(addFile));
+        if (curComTrackings.containsKey(addFile) && curComTrackings.get(addFile) == addFileSha1) {
+            if (curSA.containsKey(addFile)) {
+                curSA.remove(addFile);
+            }
+            return;
+        }  // TODO: this can be written into a helper method later.
+
+
         /* Creates a corresponding blob object and serialize it. */
         Blob fileBlob = new Blob(addFileContents);
-        String blobSHA1 = fileBlob.getSHA1();
-        File thisBlob = join(blobs, blobSHA1);
+        File thisBlob = join(blobs, addFileSha1);
         try {
             thisBlob.createNewFile();
         } catch (IOException e) {
@@ -122,11 +141,63 @@ public class Repository {
         writeObject(thisBlob, fileBlob);
 
         /* Creates the corresponding index in the Staging Area. */
-        Index thisIndex = new Index(addFile, blobSHA1);
-        HashMap<String, String> indexHM = Utils.readObject(Staging_Area, HashMap.class); // indexHM == StagingIndex
-        indexHM.put(thisIndex.getFileName(), thisIndex.getBlobSHA1());
-        writeObject(Staging_Area, indexHM);
+        Index thisIndex = new Index(addFile, addFileSha1);
+        if (curSA.containsKey(addFile)) {
+            curSA.replace(addFile, addFileSha1);
+            return;
+        } else {
+            curSA.put(thisIndex.getFileName(), thisIndex.getBlobSHA1()); // key: filename, value: sha1
+        }
+        writeObject(Staging_Area, curSA);
     }
+
+    /** A helper method for add.
+     *  This method gets the current commit's tracking files, so that I can
+     *  compare those references with that the user gives and decide whether
+     *  the user's command is valid.
+     */
+    private static HashMap<String, String> curTrackings() {
+        return getCurCommit().getFileToBlob();
+    }
+
+    /* A helper method to get the content of the staging files.
+       eg: add a.txt
+       then this method gets the content of the a.txt from the CWD.
+    */
+    private static String stagedFileNameContent(String filename) {
+        File stageFile = join(CWD, filename);
+        String content = readContentsAsString(stageFile);
+        return content;
+    }
+
+    /** A helper method for add.
+     *  Check whether the user's add command is valid.
+     *  the first argument is the curTrackings, and the second is the user's operand.
+     *  If the result is false,
+     */
+    private static boolean checkAdd(HashMap<String, String> curTrackings, String operand) {
+        String opContent = stagedFileNameContent(operand);
+        String opSha1 = Utils.sha1(opContent);
+        if (curTrackings.containsKey(operand)) {
+            if (curTrackings.get(operand) == opSha1) {
+                return false; // meaning that the current working version of the file
+                // is identical to the version in the current commit, do not stage it
+                // to be added, and remove it from the staging area if it is already there
+            }
+        }
+        HashMap<String, String> curSA = getSA();
+        if (curSA.containsKey(operand)) {
+            curSA.replace(operand, opSha1); // overwrites SA for the same filename
+            return true;
+        }
+        return true;
+    }
+
+    /* A helper method to get the current indexes from the Staging Area. */
+    private static HashMap<String, String> getSA() {
+        return readObject(Staging_Area, HashMap.class);
+    }
+
 
     /**
      * The spec says "the commit tree". Is there actually a tree structure?
@@ -137,24 +208,50 @@ public class Repository {
      *  TODO: clear the staging area
      */
     public static void commitCommand(String message) {
-        String parent = readObject(HEAD, String.class); // TODO: keep updating? files have what data type??
-        File parFile = join(commits, parent);
-        Commit parCom = readObject(parFile, Commit.class);
+        String parSha1 = getCurCommitSha1();
+        Commit parCom = getCurCommit();
+        HashMap<String, String> curIndexes = getSA();
+        HashMap<String, String> curComIndexes = buildIndexes(parCom.getFileToBlob(), curIndexes);
+        Commit curCommit = new Commit(message, parSha1, curComIndexes);
 
-        HashMap<String, String> curIndexes = readObject(Staging_Area, HashMap.class);
-        HashMap<String, String> curComIndexes = getIndexes(parCom.getFileToBlob(), curIndexes);
-        Commit curCommit = new Commit(message, parent, curComIndexes);
+        File newCommit = join(commits, curCommit.getCommitSHA1());
+        try {
+            newCommit.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        writeObject(newCommit, curCommit);
+
+        // clear the staging area after each commit
+        curIndexes.clear();
+        writeObject(Staging_Area, curIndexes);
+    }
+
+    /* A helper method to get the current commit's sha1. */
+    private static String getCurCommitSha1() {
+        return readContentsAsString(HEAD);
+    }
+
+    /* A helper method to get the current commit.*/
+    private static Commit getCurCommit() {
+        String curComSha1 = getCurCommitSha1();
+        File curComPath = join(commits, curComSha1);
+        Commit curCom = readObject(curComPath, Commit.class); // Should it be converted into inline variable?
+        return curCom;
     }
 
 
     /* A helper method for commitCommand to correctly get all the tracked files
      *  from the staging area.
      */  // TODO: how to write comments properly? Style
-    private static HashMap<String, String> getIndexes(HashMap<String, String>parentHM, HashMap<String, String>SA) {
+    private static HashMap<String, String> buildIndexes(HashMap<String, String>parentHM, HashMap<String, String>SA) {
         SA.forEach((filename, sha1) -> {
+            File filePath = join(CWD, filename);
             parentHM.putIfAbsent(filename, sha1);
-            if (parentHM.containsKey(filename)) {
-                parentHM.replace(filename, sha1);  // TODO: staged for addition/removal is not implemented yet
+            if (parentHM.containsKey(filename) && (!filePath.exists())) {
+                parentHM.remove(filename); // this is the removal case
+            } else if (parentHM.containsKey(filename)) {
+                parentHM.replace(filename, sha1);
             }
                 });
         return parentHM;

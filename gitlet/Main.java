@@ -21,8 +21,9 @@ public class Main {
                 break;
             // TODO: FILL THE REST IN
             case "commit":
-                // TODO: handle the 'commit [message]' command
-                String message = args[1]; // TODO: how to deal with several arguments?
+                // Usage: java gitlet.Main commit [message]
+                // Note that there is no "-m" as real git command.
+                String message = args[1];
                 Repository.commitCommand(message);
                 break;
             case "checkout":

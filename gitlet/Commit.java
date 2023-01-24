@@ -61,16 +61,11 @@ public class Commit implements Serializable {
     }
 
     /* The constructor for general commits. */
-    /** how to write this constructor?
-     *  TODO: how to link a commit to its parent?
-     *  TODO: modify the former constructor for initial commit
-     *
-     * */
-    public Commit(String message, String parent, HashMap<String, String> fileToBlob) { // TODO: how do I receive this message argument from my users?
+    public Commit(String message, String parent, HashMap<String, String> fileToBlob) {
         this.message = message;
         this.parent = parent;
         this.fileToBlob = fileToBlob;
-        // TODO: how to retrieve the Date???
+        this.timestamp = new Date(); // this supposed to be the current time
     }
 
     /* A helper method to get the corresponding String Lists from the

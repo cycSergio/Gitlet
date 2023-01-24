@@ -225,6 +225,13 @@ public class Repository {
         // clear the staging area after each commit
         curIndexes.clear();
         writeObject(Staging_Area, curIndexes);
+        // move HEAD and master pointers
+        String HEADp = readContentsAsString(HEAD);
+        String mstp = readContentsAsString(master);
+        HEADp = curCommit.getCommitSHA1();
+        mstp = curCommit.getCommitSHA1();
+        writeContents(HEAD, HEADp);
+        writeContents(master, mstp);
     }
 
     /* A helper method to get the current commit's sha1. */

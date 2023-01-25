@@ -19,6 +19,5 @@ public class Blob implements Serializable{
 
     public String getSHA1() {
         return Utils.sha1((Object) fileContent);
-        // TODO: which sha1 methond should I use? I have no idea.....
     }
 }

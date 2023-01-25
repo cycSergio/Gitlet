@@ -14,6 +14,7 @@
 **Status3**: 1/19,复健。Test的地方在d:/gitletTest.先去proj2里面`javac gitlet/*.java`， 
 然后 `cp gitlet/*.class d:/gitletTest/gitlet`, 这样就把项目里编译好的class文件都复制了一份到我的
 safe playground哈。
+make check TESTER_FLAGS="--verbose"
 ### * 1. init
 
  **init** creates a new Gitlet version-control system in the current directory. This system will automatically start with one commit(with the message 'initial commit'').

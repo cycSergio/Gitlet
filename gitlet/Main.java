@@ -30,6 +30,8 @@ public class Main {
                 // TODO: handle the 'checkout -- [file name]' and the 'checkout [commit id] -- [file name]' command
                 break;
             case "log":
+                // Usage: java gitlet.Main log
+                Repository.logCommand();
                 // TODO: handle the 'log' command
                 break;
 

@@ -2,11 +2,13 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import net.sf.saxon.trans.SymbolicName;
+
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date;
+import java.util.Formatter; // I'll likely use this class
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+
 
 /** Represents a gitlet commit object.
  *  What this Class does at a high level:
@@ -26,7 +28,6 @@ import java.util.List;
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -68,14 +69,6 @@ public class Commit implements Serializable {
         this.timestamp = new Date(); // this supposed to be the current time
     }
 
-    /* A helper method to get the corresponding String Lists from the
-     *  fileToBlob HashMap, so that the sha1 method can work out with
-     *  the proper parameter type.
-     */
-    private LinkedList<String> getTrackingFiles(HashMap<String, String> fileToBlob) {
-        return new LinkedList<>(fileToBlob.values()); // wooo, simplified by this smart boy!!!! amazing!
-    }
-
     /** the hashing method for this commit
      *  If two commits have the same SHA1-id, it means they have the same
      *  metadata, the same mapping of names to references, and the same
@@ -96,5 +89,14 @@ public class Commit implements Serializable {
    public HashMap<String, String> getFileToBlob() {
        return this.fileToBlob;
    }
+
+   public String getParent() {
+       return this.parent;
+   }
+
+   public String getMessage() {
+       return this.message;
+   }
+
 
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static gitlet.Utils.*;
 
@@ -262,6 +263,40 @@ public class Repository {
             }
                 });
         return parentHM;
+    }
+
+    /* A helper method to get a commit by its sha1 value. */
+    private static Commit getComBySha1(String sha1) {
+        File targetComPath = join(commits, sha1);
+        return readObject(targetComPath, Commit.class);
+    }
+
+    /* Starting at the current head commit, display information about each
+    *  commit backwards along the commit tree until the initial commit,
+    *  following the first parent commit links, ignoring any second parents
+    *  found in merge commits.
+    *  TODO: the merge case is not implemented yet. */
+    public static void logCommand() {
+        Commit curCommit = getCurCommit();
+        while (true) {
+            logMessage(curCommit);
+            // the ending point
+            if (Objects.equals(curCommit.getMessage(), "initial commit")) {
+                break;
+            }
+            String parSha1 = curCommit.getParent();
+            curCommit = getComBySha1(parSha1);
+        }
+
+    }
+
+    /* A helper method for logCommand. */
+    private static void logMessage(Commit curCommit) {
+        Utils.message("===");
+        Utils.message("commit");
+        Utils.message(curCommit.getCommitSHA1());
+        Utils.message(curCommit.getMessage());
+        // TODO: finish the info and merge them into one method
     }
 
 }

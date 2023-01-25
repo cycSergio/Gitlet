@@ -292,11 +292,22 @@ public class Repository {
 
     /* A helper method for logCommand. */
     private static void logMessage(Commit curCommit) {
-        Utils.message("===");
-        Utils.message("commit");
-        Utils.message(curCommit.getCommitSHA1());
-        Utils.message(curCommit.getMessage());
-        // TODO: finish the info and merge them into one method
+        /* log eg.
+           ===
+           commit dc4b18a1861b3dfda6b9e9be628f588df6cbf484
+           Data: Thu Nov 9 20:00:00 2017 -0800
+           A commit message.
+
+         */
+        StringBuilder logMes = new StringBuilder();
+        logMes.append("===").append("\n");
+        String comTime = curCommit.getFormattedTime();
+        String comMes = curCommit.getMessage();
+        logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
+        logMes.append("Date: ").append(comTime).append("\n");
+        logMes.append(comMes).append("\n");
+        System.out.println(logMes);
+        // TODO: merge them into one method?
     }
 
 }

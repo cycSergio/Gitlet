@@ -1,13 +1,11 @@
 package gitlet;
 
 // TODO: any imports you need here
-
-import net.sf.saxon.trans.SymbolicName;
-
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Formatter; // I'll likely use this class
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 
 
 /** Represents a gitlet commit object.
@@ -96,6 +94,12 @@ public class Commit implements Serializable {
 
    public String getMessage() {
        return this.message;
+   }
+
+   public String getFormattedTime() {
+       // Thu Nov 9 20:00:00 2017 -0800
+       SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
+       return formatTime.format(this.timestamp);
    }
 
 

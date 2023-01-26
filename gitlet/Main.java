@@ -28,6 +28,14 @@ public class Main {
                 break;
             case "checkout":
                 // TODO: handle the 'checkout -- [file name]' and the 'checkout [commit id] -- [file name]' command
+                // Usage1: java gitlet.Main checkout -- [filename]
+                String fst = args[1];
+                if (fst.equals("--")) {
+                    String filename = args[2];
+                    Repository.checkout(filename);
+                    break;
+                }
+                // Usage2: java gitlet.Main checkout [commit id] -- [filename]
                 break;
             case "log":
                 // Usage: java gitlet.Main log

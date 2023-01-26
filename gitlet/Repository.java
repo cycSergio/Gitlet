@@ -310,4 +310,24 @@ public class Repository {
         // TODO: merge them into one method?
     }
 
+    /* The first usage of checkout command.
+    *  Takes the version of the file as it exists in the head commit and puts
+   *  it in the working directory, overwriting the version of the file that's
+   *  already there if there is one. The new version of the file is not staged.*/
+    public static void checkout(String filename) {
+        Commit curCom = getCurCommit();
+        String targetSha1 = curCom.getFileToBlob().get(filename);
+    }
+
+    /* Takes the version of the file as it exists in the commit with the given
+    *  id, and puts it in the working directory, overwriting the version of the
+    *  file that's already there if there is one. The new version of the file
+    *  is not staged.
+    *  // TODO:
+    *  //
+    *  */
+    public static void checkout(String commitId, String filename) {
+
+    }
+
 }

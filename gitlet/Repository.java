@@ -317,6 +317,10 @@ public class Repository {
     public static void checkout(String filename) {
         Commit curCom = getCurCommit();
         String targetSha1 = curCom.getFileToBlob().get(filename);
+        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+        byte[] targetContent = targetBlob.getFileContent();
+        File targetFile = join(CWD, filename);
+        writeContents(targetFile, targetContent);
     }
 
     /* Takes the version of the file as it exists in the commit with the given

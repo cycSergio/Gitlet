@@ -20,4 +20,8 @@ public class Blob implements Serializable{
     public String getSHA1() {
         return Utils.sha1((Object) fileContent);
     }
+
+    public byte[] getFileContent() {
+        return this.fileContent;
+    }
 }

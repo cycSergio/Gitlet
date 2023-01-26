@@ -102,5 +102,11 @@ public class Commit implements Serializable {
        return formatTime.format(this.timestamp);
    }
 
+   /* help checkout command to restore the target file
+   *  from the HEAD commit. */
+   public void restoreTargetFile(String filename) {
+       // TODO: tbc, implemented in Repository just for now
+   }
+
 
 }

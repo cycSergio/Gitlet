@@ -327,10 +327,17 @@ public class Repository {
     *  id, and puts it in the working directory, overwriting the version of the
     *  file that's already there if there is one. The new version of the file
     *  is not staged.
-    *  // TODO:
-    *  //
+    *  // TODO: the spec says it should also support abbreviation of commit id,
+    *      as in real git. How?
     *  */
     public static void checkout(String commitId, String filename) {
+        // TODO: needs refactor
+        Commit targetCommit = getComBySha1(commitId);
+        String targetSha1 = targetCommit.getFileToBlob().get(filename);
+        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+        byte[] targetContent = targetBlob.getFileContent();
+        File targetFile = join(CWD, filename);
+        writeContents(targetFile, targetContent);
 
     }
 

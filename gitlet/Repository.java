@@ -1,14 +1,13 @@
 package gitlet;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static gitlet.Utils.*;
+import static gitlet.Utils.*; // TODO: figure out what's import static?
+import static gitlet.MyUtils.*;
 
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -42,47 +41,30 @@ public class Repository {
     public static final File master = join(GITLET_DIR, "master");
 
     /**
-     * TODO: create all the rest of the things in the .gitlet that we need
-     * TODO: somehow make the initial commit by using some constructor in the Commit Class and serialize it
-     * TODO: somehow fail if a Gitlet version-control system exists in the current directory
+     * Create all the rest of the things in the .gitlet that we need.
+     * Make the initial commit by using some constructor in the Commit Class and serialize it.
+     * Handle the failure case: if a Gitlet version-control system already exists.
      */
-    public static void initCommand() { // why static? cause I want to be able to call this method, without newing
-        // an object of Repository. And "static" enables this.
-        if (GITLET_DIR.exists()) { // If a Gitlet already exists, then fail
+    public static void initCommand() {
+        if (GITLET_DIR.exists()) {
             Utils.message("A Gitlet version-control system already exists in the current directory.");
             return;
         }
-        GITLET_DIR.mkdir(); // actually create a .git/ directory
+        GITLET_DIR.mkdir();
         blobs.mkdirs();
         commits.mkdirs();
 
         HashMap<String, String> StagingIndex = new HashMap<>();
-        try {
-            Staging_Area.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Utils.writeObject(Staging_Area, StagingIndex); // I want to make Staging Area a HashMap for indexes.
+        MyUtils.createFile(Staging_Area);
+        Utils.writeObject(Staging_Area, StagingIndex);
 
         Commit initialCommit = new Commit();
-        File initialCommitFile = join(commits, initialCommit.getCommitSHA1()); // TODO: style?
-        try {
-            initialCommitFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        File initialCommitFile = join(commits, initialCommit.getCommitSHA1());
+        MyUtils.createFile(initialCommitFile);
         writeObject(initialCommitFile, initialCommit);
 
-        try {
-            HEAD.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            master.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        MyUtils.createFile(HEAD);
+        MyUtils.createFile(master);
         Utils.writeContents(HEAD, initialCommit.getCommitSHA1());
         Utils.writeContents(master, initialCommit.getCommitSHA1());
     }

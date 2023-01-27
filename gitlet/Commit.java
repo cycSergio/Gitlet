@@ -1,6 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
 import java.io.Serializable;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -33,19 +32,17 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    private String message;
+    private final String message;
 
     /** The time at which this Commit is created. */
-    private Date timestamp;
+    private final Date timestamp;
 
     /** The mapping of file names to blob references for this commit. */
-    private HashMap<String, String> fileToBlob;
+    private final HashMap<String, String> fileToBlob;
     // TODO: fileToBlob or indexes?? you need to uniform the rules
 
     /** The parent of this commit. */
-    private String parent;
-
-
+    private final String parent;
 
 
     /* TODO: fill in the rest of this class. */

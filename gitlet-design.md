@@ -116,7 +116,7 @@ should be a description of how your code accomplishes what is stated in the spec
 
 The length of this section depends on the complexity of the task and the complexity 
 of your design. However, simple explanations are preferred. Here are some formatting 
-tips:
+tips: 
 
 For complex tasks, like determining merge conflicts, we recommend that you split the 
 task into parts. Describe your algorithm for each part in a separate section. Start 
@@ -139,7 +139,73 @@ The function of this method is threefold:
 - Actually creating all those directories and files that's need in the .gitlet/.
 - Creating the initial commit by using constructor from the [Commit class](#Commit) and serialize it.
 
+<font color = LightSkyBlue>**2. Method 2**</font> `public static void addCommand(String addFile)` <br>
+In this method:
+- Checking if the addFile exists in CWD. <br>
+ The two cases here: 1. addFile has never existed in CWD. 2. user wants to stage this file for removal. <br>
+ If there's no addFile in CWD and in HEAD commit's tracking HashMap there's also no<br>
+ addFile as a key in it, then it's case 1, send a message "File does not exist.". Else, it's case 2.
+- Handling the removal case. <br>
+  Since in this case, addFile is staged for removal, we don't have to change the blobs/
+  directory at all. All we need to do is to properly modify the Staging Area. We first
+  create a removal Index object, and add it to Staging Area (or overwrite the same name
+  one is there is already an addFile in Staging Area).
+
+- Handle the addition case. <br>
+  This can then be separated into three parts:
+  1. Checking if current commit has a same tracking as addFile by comparing their sha1 value.
+  2. Making a corresponding Blob object into the .gitlet/blobs directory.
+  3. Making an addition Index object into the Staging Area HashMap. If the current Staging
+  Area is already having an entry whose key is addFile, then just overwrites it with the
+  new sha1 value as the key's value.
+
+<font color = LightSkyBlue>**3. Method 3**</font> `public static void commitCommand(String message)` <br>
+By default, tracking for new commit is from the current(parent) commit's tracking.<br>
+This method:
+- Correctly merging the default tracking with the Staging Area's indexes to form a 
+correct tracking for this new commit. This is done by a helper method `buildIndexes`.
+- Creating a new Commit object with the new made tracking.
+- Clearing the Staging Area after each commit.
+- Moving the HEAD and master pointers
+
+
+<font color = LightSkyBlue>**4. Method 4**</font> `private static HashMap<String, String> buildIndexes(HashMap<String, String> ParentHM, HashMap<String, String> SA)` <br>
+This method iterates the current indexes(which contains filename as key and content sha1 as value) in Staging Area:
+- if file does not exist in CWD, it means it's the removal case. Just remove this entry from the parentHM
+- Else, add or replace this entry into the parentHM
+- return the modified parentHM, this is the new tracking HashMap.
+
+<font color = LightSkyBlue>**5. Method 5**</font> `public static void logCommand()`<br>
+This method has a `while` loop to iterate from the current commit to the initial commit.
+<br>In each iteration, the block inside `while` print out the information about this
+commit, and the update this current to its parent commit.
+
+<font color = LightSkyBlue>**6. Method 6**</font> `public static void checkout(String filename)`
+<br> This is the first usage of the checkout command.
+<br> Get the current commit, and get the corresponding sha1 of [filename] from it.
+<br> Then get the corresponding Blob object and get the content of [filename].
+<br> Overwrite the content to CWD.
+
+<font color = LightSkyBlue>**7. Method 7**</font> `public static void checkout(String commitId, String filename)`
+<br> This method is almost the same as Method6, except that it depends on the specified
+commit.
+
+
+
+
 ### <span id = "Commit"><font color = DarkSeaGreen>Class 3: Commit</font> </span>
+#### <font color = LightSkyBlue><strong>Constructors</strong></font>
+
+<font color = LightSkyBlue><strong>1. Constructor 1</strong></font> `public Commit()` <br>
+First of all, this is public because I want to new an object of this outside the Commit
+Class, such as in the Repository file. But when I refactor this project, I may want to
+make this constructor private and provide a public method to new an object out of this.
+
+This constructor is to create an initial commit, which has an empty tracking HashMap 
+and no parent.
+
+#### <font color = LightSkyBlue><strong>Methods</strong></font>
+
 <font color = LightSkyBlue><strong>1. Method 1</strong></font>
 
 

@@ -45,15 +45,12 @@ public class Commit implements Serializable {
     private final String parent;
 
 
-    /* TODO: fill in the rest of this class. */
     /** The constructor for an initial commit. */
     public Commit() { // This is public because I want to new an object of this outside the Commit Class.
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
-        this.parent = ""; // TODO: give initial commit a null? or ""?
-        // if give this.parent a null, the sha1 method will break;
-
+        this.parent = "";
     }
 
     /* The constructor for general commits. */

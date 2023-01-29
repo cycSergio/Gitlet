@@ -1,20 +1,26 @@
 package gitlet;
 import java.io.Serializable;
+import java.io.File;
+
+import static gitlet.Utils.*;
 
 public class Branch implements Serializable{
-    private String HEAD;
-    private String master;
 
-    public Branch(String curCoomitID) {
-        this.HEAD = curCoomitID;
-        this.master = curCoomitID;
+    private String branchName;
+    // to which commit this branch is currently pointing to
+    private String commitSha1;
+
+    private File branch;
+
+    /* The constructor for a default branch -- master.*/
+    public Branch() {
+        this.branchName = "master";
+
     }
 
-    public String getHEAD() {
-        return this.HEAD;
+    public Branch(String branchName) {
+        this.branchName = branchName;
+        commitSha1 = Repository.getCurCommitSha1();
     }
 
-    public String getMaster() {
-        return this.master;
-    }
 }

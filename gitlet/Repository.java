@@ -37,10 +37,11 @@ public class Repository {
     public static final File blobs = join(GITLET_DIR, "blobs");
     public static final File commits = join(GITLET_DIR, "commits");
     public static final File Staging_Area = join(GITLET_DIR, "index");
-    public static final File HEAD = join(GITLET_DIR, "HEAD");
-    public static final File master = join(GITLET_DIR, "master");
+    //public static final File HEAD = join(GITLET_DIR, "HEAD"); // TODO: to be modified
+    //public static final File master = join(GITLET_DIR, "master"); // TODO: to be modified
 
-    public static final File BRANCH = join(Repository.CWD, "Branch_heads");
+    public static final File BRANCH = join(GITLET_DIR, "Branch_heads");
+    public static final File HEAD2 = join(GITLET_DIR, "HEAD2"); // TODO: delete the "2"
 
     /**
      * Create all the rest of the things in the .gitlet that we need.
@@ -57,18 +58,22 @@ public class Repository {
         commits.mkdirs();
 
         HashMap<String, String> StagingIndex = new HashMap<>();
-        MyUtils.createFile(Staging_Area);
-        Utils.writeObject(Staging_Area, StagingIndex);
+        MyUtils.createAndWriteObject(Staging_Area, StagingIndex);
 
         Commit initialCommit = new Commit();
         File initialCommitFile = join(commits, initialCommit.getCommitSHA1());
-        MyUtils.createFile(initialCommitFile);
-        writeObject(initialCommitFile, initialCommit);
+        MyUtils.createAndWriteObject(initialCommitFile, initialCommit);
 
-        MyUtils.createFile(HEAD);
-        MyUtils.createFile(master);
-        Utils.writeContents(HEAD, initialCommit.getCommitSHA1());
-        Utils.writeContents(master, initialCommit.getCommitSHA1());
+        BRANCH.mkdirs();
+        Branch default_master = new Branch(initialCommit.getCommitSHA1());
+        MyUtils.createAndWriteObject(join(BRANCH, default_master.getBranchName()), default_master);
+        MyUtils.createFile(HEAD2);
+        Utils.writeContents(HEAD2, default_master.getBranchName()); // TODO: to be confirmed at Path storage
+
+//        MyUtils.createFile(HEAD);
+//        MyUtils.createFile(master);
+//        Utils.writeContents(HEAD, initialCommit.getCommitSHA1());
+//        Utils.writeContents(master, initialCommit.getCommitSHA1());
     }
 
     /**
@@ -148,16 +153,29 @@ public class Repository {
         curIndexes.clear();
         writeObject(Staging_Area, curIndexes);
         // move HEAD and master pointers
-        String HEADp = readContentsAsString(HEAD);
-        String mstp = readContentsAsString(master);
-        HEADp = curCommit.getCommitSHA1();
-        mstp = curCommit.getCommitSHA1();
-        writeContents(HEAD, HEADp);
-        writeContents(master, mstp);
+        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
+        curBranch.move(curCommit.getCommitSHA1());
+        writeObject(join(BRANCH, getHEAD()), curBranch);
+
+//        String HEADp = readContentsAsString(HEAD);
+//        String mstp = readContentsAsString(master);
+//        HEADp = curCommit.getCommitSHA1();
+//        mstp = curCommit.getCommitSHA1();
+//        writeContents(HEAD, HEADp);
+//        writeContents(master, mstp);
     }
 
-    /* A helper method to get the current commit's sha1. */static String getCurCommitSha1() {
-        return readContentsAsString(HEAD);
+    /* A helper method to get the HEAD's content. */
+    private static String getHEAD() {
+        return readContentsAsString(HEAD2);
+    }
+
+    /* A helper method to get the current commit's sha1. */
+    private static String getCurCommitSha1() {
+        String curHead = readContentsAsString(HEAD2);
+        File curBranchPath = join(BRANCH, curHead);
+        return readObject(curBranchPath, Branch.class).getBranchCommitSha1();
+        //return readContentsAsString(HEAD);
     }
 
     /* A helper method to get the current commit.*/

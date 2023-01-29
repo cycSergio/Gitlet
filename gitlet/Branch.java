@@ -1,12 +1,9 @@
 package gitlet;
 import java.io.Serializable;
-import java.io.File;
-
-import static gitlet.Utils.*;
 
 public class Branch implements Serializable{
     // the name of this branch, e.g. master is the default branch name
-    private String branchName;
+    private final String branchName;
     // to which commit this branch is currently pointing to
     private String branchCommitSha1;
 
@@ -29,7 +26,7 @@ public class Branch implements Serializable{
         return this.branchCommitSha1;
     }
 
-    // move the master point after a commit
+    // move the branch pointer after a commit
     public void move(String newCommitSha1) {
         this.branchCommitSha1 = newCommitSha1;
     }

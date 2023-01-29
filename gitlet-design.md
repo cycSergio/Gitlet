@@ -47,11 +47,14 @@ corresponding value.
    
 
 6. Field 6 `public static final File HEAD = join(GITLET_DIR, "HEAD");` <br>
-The HEAD pointer File. The content in this file is the sha1 value of the HEAD commit.
+The HEAD pointer File. The content in this file is the branch name of the currently
+active branch. For example, if now master is the active branch, then HEAD contains
+the String "master".
 
 
-7. Field 7 `public static final File master = join(GITLET_DIR, "master");` <br>
-The master pointer File. The content in this file is the sha1 value of the HEAD commit.
+7. Field 7 `public static final File BRANCH = join(GITLET_DIR, "Branch_heads");` <br>
+The branch directory. Branch objects will be placed there.Each branch object points to
+the most front commit in this branch.
 
       
 
@@ -81,12 +84,16 @@ An index object records the filename and the corresponding blob SHA1-id.
 2. Field 2
 
 
-### Class 5: Branch
+### <font color = DarkSeaGreen>Class 5: Branch</font>
+This class provide a way to create a Branch object.
 
 #### Fields
 
-1. Field 1
-2. Field 2
+<font color = LightSkyBlue>**1. Field 1**</font> `private final String branchName`
+<br> The name of a branch, e.g. master as the default branch name.
+
+<font color = LightSkyBlue>**2. Field 1**</font> `private String branchName`
+<br> The commit's sha1 value that this branch is currently pointing at.
 
 ### Class 6: Commit
 
@@ -190,10 +197,28 @@ commit, and the update this current to its parent commit.
 <br> This method is almost the same as Method6, except that it depends on the specified
 commit.
 
+<font color = LightSkyBlue>**8. Method 8**</font> `private static String getCurCommitSha1()`
+<br> This helper method gets the sha1 of the current commit.
+- Read in the content of HEAD, which is the name of the currently active branch.
+- Get the currently active Branch object.
+- From the Branch object get the sha1 of the commit that is currently pointed at.
 
 
+### <font color = DarkSeaGreen>Class 5: Branch</font>
+#### <font color = LightSkyBlue><strong>Constructors</strong></font>
+<font color = LightSkyBlue><strong>1. Constructor 1</strong></font> `public Branch(String initialCommitSha1)`
+<br> This constructor is to create the default master branch object. So the branch name is
+just "master" and has the initial commit's sha1. In `initCommand`, this default master
+branch is created in .gitlet/Branch_heads/master.
 
-### <span id = "Commit"><font color = DarkSeaGreen>Class 3: Commit</font> </span>
+#### <font color = LightSkyBlue><strong>Methods</strong></font>
+
+<font color = LightSkyBlue><strong>1. Method 1</strong></font> `public void move(String newCommitSha1)`
+<br> This method change the branch's `branchCommitSha1` to `newCommitSha1` when a new 
+commit was made. In other words, it moves the branch pointer after a commit.
+
+
+### <span id = "Commit"><font color = DarkSeaGreen>Class 6: Commit</font> </span>
 #### <font color = LightSkyBlue><strong>Constructors</strong></font>
 
 <font color = LightSkyBlue><strong>1. Constructor 1</strong></font> `public Commit()` <br>

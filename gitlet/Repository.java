@@ -41,7 +41,7 @@ public class Repository {
     //public static final File master = join(GITLET_DIR, "master"); // TODO: to be modified
 
     public static final File BRANCH = join(GITLET_DIR, "Branch_heads");
-    public static final File HEAD2 = join(GITLET_DIR, "HEAD2"); // TODO: delete the "2"
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
 
     /**
      * Create all the rest of the things in the .gitlet that we need.
@@ -67,13 +67,8 @@ public class Repository {
         BRANCH.mkdirs();
         Branch default_master = new Branch(initialCommit.getCommitSHA1());
         MyUtils.createAndWriteObject(join(BRANCH, default_master.getBranchName()), default_master);
-        MyUtils.createFile(HEAD2);
-        Utils.writeContents(HEAD2, default_master.getBranchName()); // TODO: to be confirmed at Path storage
-
-//        MyUtils.createFile(HEAD);
-//        MyUtils.createFile(master);
-//        Utils.writeContents(HEAD, initialCommit.getCommitSHA1());
-//        Utils.writeContents(master, initialCommit.getCommitSHA1());
+        MyUtils.createFile(HEAD);
+        Utils.writeContents(HEAD, default_master.getBranchName()); // TODO: to be confirmed at Path storage
     }
 
     /**
@@ -156,26 +151,18 @@ public class Repository {
         Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
         curBranch.move(curCommit.getCommitSHA1());
         writeObject(join(BRANCH, getHEAD()), curBranch);
-
-//        String HEADp = readContentsAsString(HEAD);
-//        String mstp = readContentsAsString(master);
-//        HEADp = curCommit.getCommitSHA1();
-//        mstp = curCommit.getCommitSHA1();
-//        writeContents(HEAD, HEADp);
-//        writeContents(master, mstp);
     }
 
     /* A helper method to get the HEAD's content. */
     private static String getHEAD() {
-        return readContentsAsString(HEAD2);
+        return readContentsAsString(HEAD);
     }
 
     /* A helper method to get the current commit's sha1. */
     private static String getCurCommitSha1() {
-        String curHead = readContentsAsString(HEAD2);
+        String curHead = readContentsAsString(HEAD);
         File curBranchPath = join(BRANCH, curHead);
         return readObject(curBranchPath, Branch.class).getBranchCommitSha1();
-        //return readContentsAsString(HEAD);
     }
 
     /* A helper method to get the current commit.*/
@@ -184,7 +171,6 @@ public class Repository {
         File curComPath = join(commits, curComSha1);
         return readObject(curComPath, Commit.class);
     }
-
 
     /* A helper method for commitCommand to correctly get all the tracked files
      *  from the staging area.
@@ -274,6 +260,5 @@ public class Repository {
         File targetFile = join(CWD, filename);
         writeContents(targetFile, targetContent);
     }
-
-
+    
 }

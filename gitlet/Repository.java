@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import static gitlet.Utils.*; // TODO: figure out what's import static?
@@ -37,9 +38,6 @@ public class Repository {
     public static final File blobs = join(GITLET_DIR, "blobs");
     public static final File commits = join(GITLET_DIR, "commits");
     public static final File Staging_Area = join(GITLET_DIR, "index");
-    //public static final File HEAD = join(GITLET_DIR, "HEAD"); // TODO: to be modified
-    //public static final File master = join(GITLET_DIR, "master"); // TODO: to be modified
-
     public static final File BRANCH = join(GITLET_DIR, "Branch_heads");
     public static final File HEAD = join(GITLET_DIR, "HEAD");
 
@@ -71,13 +69,8 @@ public class Repository {
         Utils.writeContents(HEAD, default_master.getBranchName()); // TODO: to be confirmed at Path storage
     }
 
-    /**
-     * add a copy of the file to the staging area.
-     * TODO: from String "addFile", get the actual file that named addFile
-     * TODO: addFile should be transferred to a blob and stored in .git/blobs
-     * TODO: add an entry in the index
-     */
-    public static void addCommand(String addFile) {
+    /* Stage one file for removal. This is part of the add command function. */
+    private static void add4removal(String addFile) {
         File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
@@ -93,6 +86,20 @@ public class Repository {
             }
             return;
         }
+    }
+
+    /**
+     * add a copy of the file to the staging area.
+     * TODO: from String "addFile", get the actual file that named addFile
+     * TODO: addFile should be transferred to a blob and stored in .git/blobs
+     * TODO: add an entry in the index
+     */
+    public static void addCommand(String addFile) {
+        File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
+        HashMap<String, String> curComTrackings = getCurTrackings();
+        HashMap<String, String> curSA = getSA();
+        add4removal(addFile);
+
         byte[] addFileContents = readContents(FileToAdd); // TODO: or read as String?
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
         // the case that current commit has the same file content as the staged one
@@ -210,7 +217,6 @@ public class Repository {
             String parSha1 = curCommit.getParent();
             curCommit = getComBySha1(parSha1);
         }
-
     }
 
     /* A helper method for logCommand. */
@@ -231,6 +237,18 @@ public class Repository {
         logMes.append(comMes).append("\n");
         System.out.println(logMes);
         // TODO: merge them into one method?
+    }
+
+    /* Displays information about all commits ever made. The order of the commits
+       does not matter.
+    */
+    // TODO: to be tested
+    public static void globalLog() {
+        List<String> allCommitsSha1 = plainFilenamesIn(commits);
+        assert allCommitsSha1 != null;
+        for (String commitSha1: allCommitsSha1) {
+            logMessage(getComBySha1(commitSha1));
+        }
     }
 
     /* The first usage of checkout command.
@@ -260,5 +278,109 @@ public class Repository {
         File targetFile = join(CWD, filename);
         writeContents(targetFile, targetContent);
     }
-    
+
+    /* Creates a new branch with the given name, and points it at the current head
+     *  commit. This command does not immediately switch to the newly created branch.
+     */
+    // TODO: to be tested
+    public static void branch(String branchName) {
+        List<String> allBranches = Utils.plainFilenamesIn(BRANCH);
+        assert allBranches != null;
+        for (String branch:allBranches) {
+            if (branch.equals(branchName)) {
+                message("A branch with that name already exists.");
+            }
+        }
+        Branch newBranch = new Branch(branchName, getCurCommitSha1());
+        newBranch.branchWrite(); // TODO: to be confirmed
+    }
+
+    /* Unstage the file if it is currently staged for addition. If the file is tracked
+       in the current commit, stage it for removal and remove the file from the CWD if
+       the user has not already done so (do not remove it unless it is tracked in the
+       current commit).
+     */
+    // TODO: to be tested
+    public static void rm(String filename) {
+        HashMap<String, String> curSA = getSA();
+        HashMap<String, String> curCommitTracking = getCurTrackings();
+        boolean staged4add = curSA.containsKey(filename) && curSA.get(filename) == null;
+        boolean inCurCom = curCommitTracking.containsKey(filename);
+        if (curSA.containsKey(filename) && curSA.get(filename) == null) {
+            curSA.remove(filename);
+        }
+        if (curCommitTracking.containsKey(filename)) {
+            if (join(CWD, filename).exists()) {
+                restrictedDelete(join(CWD, filename)); // TODO: to be confirmed and refactor
+            }
+            add4removal(filename);
+        }
+        if (!(staged4add && inCurCom)) {
+            message("No reason to remove the file.");
+        }
+    }
+
+    /* Prints out the ids of all commits that have the given commit message, one per
+       line. If there are multiple such commits, it prints the ids out on separate
+       lines.
+     */
+    // TODO: to be tested
+    public static void find(String message) {
+        List<String> allCommitsSha1 = plainFilenamesIn(commits);
+        if (allCommitsSha1 == null) {
+            message("Found no commit with that message.");
+        }
+        boolean found = false;
+        for (String commitSha1: allCommitsSha1) {
+            Commit curCommit = getComBySha1(commitSha1);
+            if (Objects.equals(curCommit.getMessage(), message)) {
+                System.out.println(commitSha1);
+                found = true;
+            }
+        }
+        if (!found) {
+            message("Found no commit with that message.");
+        }
+    }
+
+    /* Displays what branches currently exist, and marks the current branch with
+    *  a '*'. Also displays what files have been staged for addition or removal.
+    *  Entries should be listed in lexicographic order, using the Java
+    *  string-comparison order (the asterisk doesn’t count).
+    * === Branches ===
+    * *master
+    * other-branch
+    *
+    * === Staged Files ===
+    * wug.txt
+    *
+    * === Removed Files ===
+    * goodbye.txt
+    *
+    */
+    // TODO: two extra sections to be done after the basic.
+    // TODO: not sure about removed, to be checked
+    // TODO: to be tested
+    public static void status() {
+        // list all branches and specify the active one
+        System.out.println("=== Branches ===");
+        List<String> allBranches = plainFilenamesIn(BRANCH);
+        String activeBranch = getHEAD();
+        for (String branch:allBranches) {
+            if (Objects.equals(branch, activeBranch)) {
+                System.out.print("*");
+            }
+            System.out.println(branch);
+        }
+        // then list all the staged files
+        System.out.println("=== Staged files ===");
+        HashMap<String, String> curSA = getSA();
+        for (String filename:curSA.keySet()) {
+            System.out.println(filename);
+        }
+
+        // then list all the removed files
+        System.out.println("=== Removed Files ===");
+
+    }
 }

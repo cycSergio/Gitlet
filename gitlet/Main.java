@@ -27,7 +27,6 @@ public class Main {
                 Repository.commitCommand(message);
                 break;
             case "checkout":
-                // TODO: handle the 'checkout -- [file name]' and the 'checkout [commit id] -- [file name]' command
                 // TODO: handle the 'checkout [branch name]' command
                 // Usage1: java gitlet.Main checkout -- [filename]
                 String fst = args[1];
@@ -45,8 +44,28 @@ public class Main {
             case "log":
                 // Usage: java gitlet.Main log
                 Repository.logCommand();
-                // TODO: handle the 'log' command
                 break;
+            case "rm":
+                // Usage: java gitlet.Main rm [file name]
+                Repository.rm(args[1]);
+                break;
+            case "global-log":
+                // Usage: java gitlet.Main global-log
+                Repository.globalLog();
+                break;
+            case "find":
+                // Usage: java gitlet.Main find [commit message]
+                Repository.find(args[1]);
+                break;
+            case "branch":
+                // Usage: java gitlet.Main branch [branch name]
+                Repository.branch(args[1]);
+                break;
+            case "status":
+                // Usage: java gitlet.Main status
+                Repository.status();
+                break;
+
 
         }
     }

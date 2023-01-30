@@ -1,4 +1,5 @@
 package gitlet;
+import java.io.File;
 import java.io.Serializable;
 
 public class Branch implements Serializable{
@@ -29,5 +30,13 @@ public class Branch implements Serializable{
     // move the branch pointer after a commit
     public void move(String newCommitSha1) {
         this.branchCommitSha1 = newCommitSha1;
+    }
+
+    public File getBranchPath() {
+        return Utils.join(Repository.BRANCH, this.branchName);
+    }
+
+    public void branchWrite() {
+        Utils.writeObject(getBranchPath(), this);
     }
 }

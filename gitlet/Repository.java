@@ -304,9 +304,9 @@ public class Repository {
     public static void rm(String filename) {
         HashMap<String, String> curSA = getSA();
         HashMap<String, String> curCommitTracking = getCurTrackings();
-        boolean staged4add = curSA.containsKey(filename) && curSA.get(filename) == null;
+        boolean staged4add = curSA.containsKey(filename) && curSA.get(filename) != null;
         boolean inCurCom = curCommitTracking.containsKey(filename);
-        if (curSA.containsKey(filename) && curSA.get(filename) == null) {
+        if (staged4add) {
             curSA.remove(filename);
         }
         if (curCommitTracking.containsKey(filename)) {
@@ -372,15 +372,19 @@ public class Repository {
             }
             System.out.println(branch);
         }
+        System.out.println();
         // then list all the staged files
         System.out.println("=== Staged files ===");
         HashMap<String, String> curSA = getSA();
         for (String filename:curSA.keySet()) {
             System.out.println(filename);
         }
+        System.out.println();
 
         // then list all the removed files
         System.out.println("=== Removed Files ===");
+
+        System.out.println();
 
     }
 }

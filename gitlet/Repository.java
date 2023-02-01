@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -371,7 +372,6 @@ public class Repository {
     * goodbye.txt
     *
     */
-    // TODO: two extra sections to be done after the basic.
     // TODO: not sure about removed, to be checked
     // TODO: to be tested
     public static void status() {
@@ -399,5 +399,12 @@ public class Repository {
 
         System.out.println();
 
+        // then list modifications not staged
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+
+        // then list untracked files
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
     }
 }

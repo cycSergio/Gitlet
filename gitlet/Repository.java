@@ -157,6 +157,9 @@ public class Repository {
         String parSha1 = getCurCommitSha1();
         Commit parCom = getCurCommit();
         HashMap<String, String> curIndexes = getSA();
+        if (curIndexes.isEmpty()) {
+            message("No changes added to the commit.");
+        }
         HashMap<String, String> curComIndexes = buildIndexes(parCom.getFileToBlob(), curIndexes);
         Commit curCommit = new Commit(message, parSha1, curComIndexes);
 

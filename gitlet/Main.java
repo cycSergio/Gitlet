@@ -23,6 +23,9 @@ public class Main {
             case "commit":
                 // Usage: java gitlet.Main commit [message]
                 // Note that there is no "-m" as real git command.
+                if (args.length == 1) {
+                    Utils.message("Please enter a commit message.");
+                }
                 String message = args[1];
                 Repository.commitCommand(message);
                 break;

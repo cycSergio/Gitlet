@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -388,15 +387,21 @@ public class Repository {
         System.out.println();
         // then list all the staged files
         System.out.println("=== Staged files ===");
-        HashMap<String, String> curSA = getSA();
+        HashMap<String, String> curSA = getSA(); // TODO: sort this list!
         for (String filename:curSA.keySet()) {
-            System.out.println(filename);
+            if (curSA.get(filename) != null) {
+                System.out.println(filename);
+            }
         }
         System.out.println();
 
         // then list all the removed files
         System.out.println("=== Removed Files ===");
-
+        for (String filename:curSA.keySet()) {
+            if (curSA.get(filename) == null) {
+                System.out.println(filename);
+            }
+        }
         System.out.println();
 
         // then list modifications not staged

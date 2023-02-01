@@ -98,7 +98,19 @@ public class Repository {
         File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
-        add4removal(addFile);
+        if (!FileToAdd.exists()) {
+            if (!curComTrackings.containsKey(addFile)) {
+                Utils.message("File does not exist."); // failure case, meaning that
+                // the user is trying to stage a nonexistent file for addition.
+            }
+            else { // addFile is staged for removal
+                Index removalIndex = new Index(addFile);
+                curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
+                writeObject(Staging_Area, curSA);
+            }
+            return;
+        }
+
 
         byte[] addFileContents = readContents(FileToAdd); // TODO: or read as String?
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
@@ -308,14 +320,15 @@ public class Repository {
         boolean inCurCom = curCommitTracking.containsKey(filename);
         if (staged4add) {
             curSA.remove(filename);
+            writeObject(Staging_Area, curSA);
         }
         if (curCommitTracking.containsKey(filename)) {
             if (join(CWD, filename).exists()) {
                 restrictedDelete(join(CWD, filename)); // TODO: to be confirmed and refactor
             }
-            add4removal(filename);
+            addCommand(filename);
         }
-        if (!(staged4add && inCurCom)) {
+        if ((!staged4add) && (!inCurCom)) {
             message("No reason to remove the file.");
         }
     }

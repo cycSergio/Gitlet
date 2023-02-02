@@ -12,6 +12,10 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
+        if (args == null) {
+            Utils.message("Please enter a command.");
+            return;
+        }
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
@@ -39,6 +43,10 @@ public class Main {
                     Repository.checkout(filename);
                 } else if (args.length == 4) {
                     // Usage2: java gitlet.Main checkout [commit id] -- [filename]
+                    if (!Objects.equals(args[2], "--")) {
+                        Utils.message("Incorrect operands.");
+                        break;
+                    }
                     String targetCommit = args[1];
                     String targetFilename = args[3];
                     Repository.checkout(targetCommit, targetFilename);
@@ -71,6 +79,12 @@ public class Main {
                 // Usage: java gitlet.Main status
                 Repository.status();
                 break;
+            case "rm-branch":
+                // Usage: java gitlet.Main rm-branch [branch name]
+                Repository.rmBranch(args[1]);
+                break;
+            default:
+                Utils.message("No command with that name exists.");
 
 
         }

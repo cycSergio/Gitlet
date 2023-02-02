@@ -444,6 +444,12 @@ public class Repository {
     *
     */
     public static void status() {
+        // check failure cases
+        if (!GITLET_DIR.exists()) {
+            message("Not in an initialized Gitlet directory.");
+            return;
+        }
+
         // list all branches and specify the active one
         System.out.println("=== Branches ===");
         List<String> allBranches = plainFilenamesIn(BRANCH);
@@ -492,5 +498,20 @@ public class Repository {
 //            }
 //        }
         System.out.println();
+    }
+
+    /* Deletes the branch with the given name. This only means to delete the pointer
+    *  associated with the branch; it does not mean to delete all commits that
+    *  were created under the branch, or anything like that. */
+    public static void rmBranch(String branchname) {
+        if (!join(BRANCH, branchname).exists()) {
+            message("A branch with that name does not exist.");
+            return;
+        }
+        if (Objects.equals(branchname, getHEAD())) {
+            message("Cannot remove the current branch.");
+            return;
+        }
+        join(BRANCH, branchname).delete();
     }
 }

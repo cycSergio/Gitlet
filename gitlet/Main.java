@@ -1,5 +1,7 @@
 package gitlet;
 
+import java.util.Objects;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author cyc
  */
@@ -23,11 +25,10 @@ public class Main {
             case "commit":
                 // Usage: java gitlet.Main commit [message]
                 // Note that there is no "-m" as real git command.
-                if (args.length == 1) {
+                if (args.length == 1 || Objects.equals(args[1], "")) {
                     Utils.message("Please enter a commit message.");
                 }
-                String message = args[1];
-                Repository.commitCommand(message);
+                Repository.commitCommand(args[1]);
                 break;
             case "checkout":
                 // TODO: handle the 'checkout [branch name]' command
@@ -36,13 +37,15 @@ public class Main {
                 if (fst.equals("--")) {
                     String filename = args[2];
                     Repository.checkout(filename);
-                } else if (args.length != 2) {
+                } else if (args.length == 4) {
                     // Usage2: java gitlet.Main checkout [commit id] -- [filename]
                     String targetCommit = args[1];
                     String targetFilename = args[3];
                     Repository.checkout(targetCommit, targetFilename);
+                } else if (args.length == 2) {
+                    // Usage3: java gitlet.Main checkout [branch name]
+                    Repository.checkoutBranch(args[1]);
                 }
-                // Usage3: tbc
                 break;
             case "log":
                 // Usage: java gitlet.Main log

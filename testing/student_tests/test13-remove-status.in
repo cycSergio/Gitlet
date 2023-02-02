@@ -1,8 +1,8 @@
 # Remove a tracked file and check status.
 I setup2.inc
-> rm a.txt
+> rm f.txt
 <<<
-* a.txt
+* f.txt
 > status
 === Branches ===
 *master
@@ -10,7 +10,7 @@ I setup2.inc
 === Staged Files ===
 
 === Removed Files ===
-a.txt
+f.txt
 
 === Modifications Not Staged For Commit ===
 

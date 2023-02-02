@@ -1,13 +1,17 @@
 package gitlet;
 
+import edu.princeton.cs.algs4.SET;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static gitlet.Utils.*; // TODO: figure out what's import static?
 import static gitlet.MyUtils.*;
+import static java.util.Collections.addAll;
 
 
 /** Represents a gitlet repository.
@@ -271,6 +275,10 @@ public class Repository {
    *  it in the working directory, overwriting the version of the file that's
    *  already there if there is one. The new version of the file is not staged.*/
     public static void checkout(String filename) {
+        if (!getCurCommit().getFileToBlob().containsKey(filename)) {
+            message("File does not exist in that commit.");
+            return;
+        }
         String targetSha1 = getCurCommit().getFileToBlob().get(filename);
         Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
         byte[] targetContent = targetBlob.getFileContent();
@@ -287,11 +295,71 @@ public class Repository {
     *  */
     public static void checkout(String commitId, String filename) {
         // TODO: needs refactor, as it's the same as the first checkout command.
+        if (!join(commits, commitId).exists()) {
+            message("No commit with that id exists.");
+            return;
+        }
+        if (!getComBySha1(commitId).getFileToBlob().containsKey(filename)) {
+            message("File does not exist in that commit.");
+            return;
+        }
         String targetSha1 = getComBySha1(commitId).getFileToBlob().get(filename);
         Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
         byte[] targetContent = targetBlob.getFileContent();
         File targetFile = join(CWD, filename);
         writeContents(targetFile, targetContent);
+    }
+
+    /* Takes all files in the commit at the head of the given branch, and puts them
+    *  in the working directory, overwriting the versions of the files that are
+    *  already there if they exist.
+    *  Also, at the end of this command, the given branch will now be considered
+    *  the current branch(HEAD). Any files that are tracked in the current (old)
+    *  branch but are not present in the checked-out branch(new) are deleted.
+    *  The staging area is cleared, unless the checked-out branch is the current
+    *  branch.
+    *  */
+    public static void checkoutBranch(String branchname) {
+        if (!join(BRANCH, branchname).exists()) {
+            message("No such branch exists.");
+            return;
+        }
+        HashMap<String, String> curSA = getSA();
+        String curHead = getHEAD();
+        if (curHead.equals(branchname)) {
+            message("No need to checkout the current branch.");
+            return;
+        }
+        List<String> allCWDfiles = plainFilenamesIn(CWD);
+        HashMap<String, String> curTracking = getCurTrackings();
+        for (String CWDfile:allCWDfiles) {
+            if (!curTracking.containsKey(CWDfile)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+               return;
+            }
+        }
+
+        String commitId = readObject(join(BRANCH, branchname), Branch.class).getBranchCommitSha1();
+        Commit targetCom = getComBySha1(commitId);
+        Set<String> allCommitFiles = targetCom.getFileToBlob().keySet();
+        String targetSha1;
+        Blob targetBlob;;
+        for (String CWDfile:allCWDfiles) {
+            if (!targetCom.getFileToBlob().containsKey(CWDfile)) {
+                restrictedDelete(join(CWD, CWDfile));
+            }
+        }
+        for (String file: allCommitFiles) {
+            targetSha1 = targetCom.getFileToBlob().get(file);
+            targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+            writeContents(join(CWD, file), targetBlob.getFileContent());
+        }
+
+        curHead = branchname;
+        writeContents(HEAD, curHead);
+
+        curSA.clear();
+        writeObject(Staging_Area, curSA);
     }
 
     /* Creates a new branch with the given name, and points it at the current head
@@ -363,6 +431,7 @@ public class Repository {
     *  a '*'. Also displays what files have been staged for addition or removal.
     *  Entries should be listed in lexicographic order, using the Java
     *  string-comparison order (the asterisk doesn’t count).
+    *
     * === Branches ===
     * *master
     * other-branch
@@ -374,8 +443,6 @@ public class Repository {
     * goodbye.txt
     *
     */
-    // TODO: not sure about removed, to be checked
-    // TODO: to be tested
     public static void status() {
         // list all branches and specify the active one
         System.out.println("=== Branches ===");
@@ -388,7 +455,7 @@ public class Repository {
             System.out.println(branch);
         }
         System.out.println();
-        // then list all the staged files
+        // then list all the staged files -- files that are staged for addition
         System.out.println("=== Staged files ===");
         HashMap<String, String> curSA = getSA(); // TODO: sort this list!
         for (String filename:curSA.keySet()) {
@@ -398,7 +465,7 @@ public class Repository {
         }
         System.out.println();
 
-        // then list all the removed files
+        // then list all the removed files -- files that are staged for removal
         System.out.println("=== Removed Files ===");
         for (String filename:curSA.keySet()) {
             if (curSA.get(filename) == null) {
@@ -409,10 +476,21 @@ public class Repository {
 
         // then list modifications not staged
         System.out.println("=== Modifications Not Staged For Commit ===");
+
         System.out.println();
 
         // then list untracked files
         System.out.println("=== Untracked Files ===");
+//        List<String> allCWDfiles = plainFilenamesIn(CWD);
+//        Set<String>  trackings = getCurTrackings().keySet();
+//        Set<String> SA = curSA.keySet();
+//        trackings.addAll(SA);
+//        assert allCWDfiles != null;
+//        for (String filename:allCWDfiles) {
+//            if (!getCurTrackings().containsKey(filename)) {
+//                System.out.println(filename);
+//            }
+//        }
         System.out.println();
     }
 }

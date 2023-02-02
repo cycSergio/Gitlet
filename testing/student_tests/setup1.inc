@@ -1,8 +1,8 @@
 # Initialize and add two files.
 I prelude1.inc
-+ a.txt wug.txt
-+ b.txt notwug.txt
-> add b.txt
++ f.txt wug.txt
++ g.txt notwug.txt
+> add g.txt
 <<<
-> add a.txt
+> add f.txt
 <<<

@@ -280,10 +280,22 @@ public class Repository {
             return;
         }
         String targetSha1 = getCurCommit().getFileToBlob().get(filename);
-        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
-        byte[] targetContent = targetBlob.getFileContent();
         File targetFile = join(CWD, filename);
-        writeContents(targetFile, targetContent);
+        writeContents(targetFile, getFileContentBySha1(targetSha1, filename));
+    }
+
+    private static byte[] getFileContentBySha1(String targetSha1, String filename) {
+        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+        byte[] targetContnet = targetBlob.getFileContent();
+        return targetContnet;
+    }
+
+    private static Boolean checkIfCommitExists(String commitId) {
+        if (!join(commits, commitId).exists()) {
+            message("No commit with that id exists.");
+            return true;
+        }
+        return false;
     }
 
     /* Takes the version of the file as it exists in the commit with the given
@@ -295,8 +307,7 @@ public class Repository {
     *  */
     public static void checkout(String commitId, String filename) {
         // TODO: needs refactor, as it's the same as the first checkout command.
-        if (!join(commits, commitId).exists()) {
-            message("No commit with that id exists.");
+        if (checkIfCommitExists(commitId)) {
             return;
         }
         if (!getComBySha1(commitId).getFileToBlob().containsKey(filename)) {
@@ -304,10 +315,21 @@ public class Repository {
             return;
         }
         String targetSha1 = getComBySha1(commitId).getFileToBlob().get(filename);
-        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
-        byte[] targetContent = targetBlob.getFileContent();
         File targetFile = join(CWD, filename);
-        writeContents(targetFile, targetContent);
+        writeContents(targetFile, getFileContentBySha1(targetSha1, filename));
+    }
+
+    private static boolean checkUntrackedFiles() {
+        // If a file in CWD is not tracked in the current Commit/SA, then it's untracked.
+        List<String> allCWDfiles = plainFilenamesIn(CWD);
+        HashMap<String, String> curTracking = getCurTrackings();
+        for (String CWDfile:allCWDfiles) {
+            if (!curTracking.containsKey(CWDfile)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                return true;
+            }
+        }
+        return false;
     }
 
     /* Takes all files in the commit at the head of the given branch, and puts them
@@ -331,12 +353,8 @@ public class Repository {
             return;
         }
         List<String> allCWDfiles = plainFilenamesIn(CWD);
-        HashMap<String, String> curTracking = getCurTrackings();
-        for (String CWDfile:allCWDfiles) {
-            if (!curTracking.containsKey(CWDfile)) {
-                message("There is an untracked file in the way; delete it, or add and commit it first.");
-               return;
-            }
+        if (checkUntrackedFiles()) {
+            return;
         }
 
         String commitId = readObject(join(BRANCH, branchname), Branch.class).getBranchCommitSha1();
@@ -513,5 +531,17 @@ public class Repository {
             return;
         }
         join(BRANCH, branchname).delete();
+    }
+
+    /* Checks out all the files tracked by the given commit. */
+    public static void reset(String commitId) {
+        if (checkUntrackedFiles() || checkIfCommitExists()) {
+            return;
+        }
+        List<String> targetComFiles = plainFilenamesIn(join(commits, commitId));
+        for (String file:targetComFiles) {
+            checkout(commitId, file);
+        }
+
     }
 }

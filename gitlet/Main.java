@@ -83,10 +83,11 @@ public class Main {
                 // Usage: java gitlet.Main rm-branch [branch name]
                 Repository.rmBranch(args[1]);
                 break;
+            case "reset":
+                Repository.reset(args[1]);
+                break;
             default:
                 Utils.message("No command with that name exists.");
-
-
         }
     }
 }

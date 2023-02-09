@@ -27,7 +27,7 @@ public class Branch implements Serializable{
         return this.branchCommitSha1;
     }
 
-    // move the branch pointer after a commit
+    // move the branch pointer after a commit or after a reset command.
     public void move(String newCommitSha1) {
         this.branchCommitSha1 = newCommitSha1;
     }

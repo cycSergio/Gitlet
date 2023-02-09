@@ -379,7 +379,6 @@ public class Repository {
             message("No such branch exists.");
             return;
         }
-        HashMap<String, String> curSA = getSA();
         String curHead = getHEAD();
         if (curHead.equals(branchname)) {
             message("No need to checkout the current branch.");
@@ -389,26 +388,11 @@ public class Repository {
             return;
         }
 
-        //List<String> allCWDfiles = plainFilenamesIn(CWD);
         String commitId = readObject(join(BRANCH, branchname), Branch.class).getBranchCommitSha1();
         overwriteCWDbyCertainCommit(commitId);
-//        Commit targetCom = getComBySha1(commitId);
-//        HashMap<String, String> targetTracking = targetCom.getFileToBlob();
-//        String targetSha1;
-//        Blob targetBlob;;
-//        for (String CWDfile:allCWDfiles) {
-//            if (!targetTracking.containsKey(CWDfile)) {
-//                restrictedDelete(join(CWD, CWDfile));
-//            }
-//        }
-//        for (String trackingFile: targetTracking.keySet()) {
-//            targetSha1 = targetTracking.get(trackingFile);
-//            //targetBlob = readObject(join(blobs, targetSha1), Blob.class);
-//            writeContents(join(CWD, trackingFile), getFileContentBySha1(targetSha1));
-//        }
-        curHead = branchname;
-        writeContents(HEAD, curHead);
 
+        writeContents(HEAD, branchname);
+        HashMap<String, String> curSA = getSA();
         curSA.clear();
         writeObject(Staging_Area, curSA);
     }
@@ -564,15 +548,25 @@ public class Repository {
         join(BRANCH, branchname).delete();
     }
 
-    /* Checks out all the files tracked by the given commit. */
+    /** A helper method to get the current Branch object.    */
+    private static Branch getCurBranch() {
+        return readObject(join(BRANCH, getHEAD()), Branch.class);
+    }
+
+    /** Checks out all the files tracked by the given commit.
+     *  Also moves the current branch's head to that commit node.
+     *  The staging area is clear. This command is essentially
+     *  `checkout` of an arbitrary commit that also changes the
+     *  current branch head. */
     public static void reset(String commitId) {
         if (checkUntrackedFiles() || !checkIfCommitExists(commitId)) {
             return;
         }
-        List<String> targetComFiles = plainFilenamesIn(join(commits, commitId));
-        for (String file:targetComFiles) {
-            checkout(commitId, file);
-        }
-
+        overwriteCWDbyCertainCommit(commitId);
+        Branch curBranch = getCurBranch();
+        curBranch.move(commitId);
+        HashMap<String, String> curSA = getSA();
+        curSA.clear();
+        writeObject(Staging_Area, curSA);
     }
 }

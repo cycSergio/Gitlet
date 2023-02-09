@@ -261,7 +261,6 @@ public class Repository {
     /* Displays information about all commits ever made. The order of the commits
        does not matter.
     */
-    // TODO: to be tested
     public static void globalLog() {
         List<String> allCommitsSha1 = plainFilenamesIn(commits);
         assert allCommitsSha1 != null;
@@ -271,60 +270,72 @@ public class Repository {
     }
 
     /* The first usage of checkout command.
-    *  Takes the version of the file as it exists in the head commit and puts
-   *  it in the working directory, overwriting the version of the file that's
-   *  already there if there is one. The new version of the file is not staged.*/
+       Takes the version of the file as it exists in the head commit and puts
+       it in the working directory, overwriting the version of the file that's
+       already there if there is one. The new version of the file is not staged.
+
+       From current commit get the sha1 of [filename], by this sha1 get the
+       corresponding content from the blob named this [sha1].
+    */
     public static void checkout(String filename) {
-        if (!getCurCommit().getFileToBlob().containsKey(filename)) {
+        HashMap<String, String> curTracking = getCurTrackings();
+        if (!curTracking.containsKey(filename)) {
             message("File does not exist in that commit.");
             return;
         }
-        String targetSha1 = getCurCommit().getFileToBlob().get(filename);
+        String targetSha1 = curTracking.get(filename);
         File targetFile = join(CWD, filename);
-        writeContents(targetFile, getFileContentBySha1(targetSha1, filename));
+        writeContents(targetFile, getFileContentBySha1(targetSha1));
     }
 
-    private static byte[] getFileContentBySha1(String targetSha1, String filename) {
+    /* A helper method to get content from the blob that named [targetSha1]*/
+    private static byte[] getFileContentBySha1(String targetSha1) {
         Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
         byte[] targetContnet = targetBlob.getFileContent();
         return targetContnet;
     }
 
+    /** Return false if the commit named [commitId] does not exists. */
     private static Boolean checkIfCommitExists(String commitId) {
-        if (!join(commits, commitId).exists()) {
-            message("No commit with that id exists.");
+        if (join(commits, commitId).exists()) {
             return true;
+        } else {
+            message("No commit with that id exists.");
+            return false;
         }
-        return false;
     }
 
-    /* Takes the version of the file as it exists in the commit with the given
-    *  id, and puts it in the working directory, overwriting the version of the
-    *  file that's already there if there is one. The new version of the file
-    *  is not staged.
-    *  // TODO: the spec says it should also support abbreviation of commit id,
-    *      as in real git. How?
-    *  */
+    /** The second usage of checkout command.
+     *  Takes the version of the file as it exists in the commit with the given
+     *  id, and puts it in the working directory, overwriting the version of the
+     *  file that's already there if there is one. The new version of the file
+     *  is not staged.
+     *  // TODO: the spec says it should also support abbreviation of commit id,
+     *      as in real git. How?
+     *  */
     public static void checkout(String commitId, String filename) {
         // TODO: needs refactor, as it's the same as the first checkout command.
-        if (checkIfCommitExists(commitId)) {
+        if (!checkIfCommitExists(commitId)) {
             return;
         }
-        if (!getComBySha1(commitId).getFileToBlob().containsKey(filename)) {
+        HashMap<String, String> targetTracking = getComBySha1(commitId).getFileToBlob();
+        if (!targetTracking.containsKey(filename)) {
             message("File does not exist in that commit.");
             return;
         }
-        String targetSha1 = getComBySha1(commitId).getFileToBlob().get(filename);
+        String targetSha1 = targetTracking.get(filename);
         File targetFile = join(CWD, filename);
-        writeContents(targetFile, getFileContentBySha1(targetSha1, filename));
+        writeContents(targetFile, getFileContentBySha1(targetSha1));
     }
 
+    /** Return true if there are untracked files. */
     private static boolean checkUntrackedFiles() {
         // If a file in CWD is not tracked in the current Commit/SA, then it's untracked.
         List<String> allCWDfiles = plainFilenamesIn(CWD);
         HashMap<String, String> curTracking = getCurTrackings();
+        HashMap<String, String> curSA = getSA();
         for (String CWDfile:allCWDfiles) {
-            if (!curTracking.containsKey(CWDfile)) {
+            if (!curTracking.containsKey(CWDfile) && !curSA.containsKey(CWDfile)) {
                 message("There is an untracked file in the way; delete it, or add and commit it first.");
                 return true;
             }
@@ -332,7 +343,29 @@ public class Repository {
         return false;
     }
 
-    /* Takes all files in the commit at the head of the given branch, and puts them
+    /** A helper method to checks out all files from a certain commit
+     *  and overwrites the current CWD files.
+     */
+    private static void overwriteCWDbyCertainCommit(String commitId) {
+        List<String> allCWDfiles = plainFilenamesIn(CWD);
+        Commit targetCom = getComBySha1(commitId);
+        HashMap<String, String> targetTracking = targetCom.getFileToBlob();
+        String targetSha1;
+//        Blob targetBlob;;
+        for (String CWDfile:allCWDfiles) {
+            if (!targetTracking.containsKey(CWDfile)) {
+                restrictedDelete(join(CWD, CWDfile));
+            }
+        }
+        for (String trackingFile: targetTracking.keySet()) {
+            targetSha1 = targetTracking.get(trackingFile);
+            //targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+            writeContents(join(CWD, trackingFile), getFileContentBySha1(targetSha1));
+        }
+    }
+
+    /** The third usage of checkout command.
+    *  Takes all files in the commit at the head of the given branch, and puts them
     *  in the working directory, overwriting the versions of the files that are
     *  already there if they exist.
     *  Also, at the end of this command, the given branch will now be considered
@@ -352,27 +385,27 @@ public class Repository {
             message("No need to checkout the current branch.");
             return;
         }
-        List<String> allCWDfiles = plainFilenamesIn(CWD);
         if (checkUntrackedFiles()) {
             return;
         }
 
+        //List<String> allCWDfiles = plainFilenamesIn(CWD);
         String commitId = readObject(join(BRANCH, branchname), Branch.class).getBranchCommitSha1();
-        Commit targetCom = getComBySha1(commitId);
-        Set<String> allCommitFiles = targetCom.getFileToBlob().keySet();
-        String targetSha1;
-        Blob targetBlob;;
-        for (String CWDfile:allCWDfiles) {
-            if (!targetCom.getFileToBlob().containsKey(CWDfile)) {
-                restrictedDelete(join(CWD, CWDfile));
-            }
-        }
-        for (String file: allCommitFiles) {
-            targetSha1 = targetCom.getFileToBlob().get(file);
-            targetBlob = readObject(join(blobs, targetSha1), Blob.class);
-            writeContents(join(CWD, file), targetBlob.getFileContent());
-        }
-
+        overwriteCWDbyCertainCommit(commitId);
+//        Commit targetCom = getComBySha1(commitId);
+//        HashMap<String, String> targetTracking = targetCom.getFileToBlob();
+//        String targetSha1;
+//        Blob targetBlob;;
+//        for (String CWDfile:allCWDfiles) {
+//            if (!targetTracking.containsKey(CWDfile)) {
+//                restrictedDelete(join(CWD, CWDfile));
+//            }
+//        }
+//        for (String trackingFile: targetTracking.keySet()) {
+//            targetSha1 = targetTracking.get(trackingFile);
+//            //targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+//            writeContents(join(CWD, trackingFile), getFileContentBySha1(targetSha1));
+//        }
         curHead = branchname;
         writeContents(HEAD, curHead);
 
@@ -401,7 +434,6 @@ public class Repository {
        the user has not already done so (do not remove it unless it is tracked in the
        current commit).
      */
-    // TODO: to be tested
     public static void rm(String filename) {
         HashMap<String, String> curSA = getSA();
         HashMap<String, String> curCommitTracking = getCurTrackings();
@@ -426,7 +458,6 @@ public class Repository {
        line. If there are multiple such commits, it prints the ids out on separate
        lines.
      */
-    // TODO: to be tested
     public static void find(String message) {
         List<String> allCommitsSha1 = plainFilenamesIn(commits);
         if (allCommitsSha1 == null) {
@@ -535,7 +566,7 @@ public class Repository {
 
     /* Checks out all the files tracked by the given commit. */
     public static void reset(String commitId) {
-        if (checkUntrackedFiles() || checkIfCommitExists(commitId)) {
+        if (checkUntrackedFiles() || !checkIfCommitExists(commitId)) {
             return;
         }
         List<String> targetComFiles = plainFilenamesIn(join(commits, commitId));

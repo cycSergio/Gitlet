@@ -1,17 +1,11 @@
 package gitlet;
 
-import edu.princeton.cs.algs4.SET;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static gitlet.Utils.*; // TODO: figure out what's import static?
-import static gitlet.MyUtils.*;
-import static java.util.Collections.addAll;
 
 
 /** Represents a gitlet repository.
@@ -39,9 +33,9 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
     /* TODO: fill in the rest of this class. */
-    public static final File blobs = join(GITLET_DIR, "blobs");
-    public static final File commits = join(GITLET_DIR, "commits");
-    public static final File Staging_Area = join(GITLET_DIR, "index");
+    public static final File BLOBS = join(GITLET_DIR, "blobs");
+    public static final File COMMITS = join(GITLET_DIR, "commits");
+    public static final File STAGING_AREA = join(GITLET_DIR, "index");
     public static final File BRANCH = join(GITLET_DIR, "Branch_heads");
     public static final File HEAD = join(GITLET_DIR, "HEAD");
 
@@ -56,29 +50,29 @@ public class Repository {
             return;
         }
         GITLET_DIR.mkdir();
-        blobs.mkdirs();
-        commits.mkdirs();
+        BLOBS.mkdirs();
+        COMMITS.mkdirs();
 
-        HashMap<String, String> StagingIndex = new HashMap<>();
-        MyUtils.createAndWriteObject(Staging_Area, StagingIndex);
+        HashMap<String, String> stagingIndex = new HashMap<>();
+        MyUtils.createAndWriteObject(STAGING_AREA, stagingIndex);
 
         Commit initialCommit = new Commit();
-        File initialCommitFile = join(commits, initialCommit.getCommitSHA1());
+        File initialCommitFile = join(COMMITS, initialCommit.getCommitSHA1());
         MyUtils.createAndWriteObject(initialCommitFile, initialCommit);
 
         BRANCH.mkdirs();
-        Branch default_master = new Branch(initialCommit.getCommitSHA1());
-        MyUtils.createAndWriteObject(join(BRANCH, default_master.getBranchName()), default_master);
+        Branch defaultMaster = new Branch(initialCommit.getCommitSHA1());
+        MyUtils.createAndWriteObject(join(BRANCH, defaultMaster.getBranchName()), defaultMaster);
         MyUtils.createFile(HEAD);
-        Utils.writeContents(HEAD, default_master.getBranchName()); // TODO: to be confirmed at Path storage
+        Utils.writeContents(HEAD, defaultMaster.getBranchName()); // TODO: to be confirmed at Path storage
     }
 
     /* Stage one file for removal. This is part of the add command function. */
     private static void add4removal(String addFile) {
-        File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
+        File fileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
-        if (!FileToAdd.exists()) {
+        if (!fileToAdd.exists()) {
             if (!curComTrackings.containsKey(addFile)) {
                 Utils.message("File does not exist."); // failure case, meaning that
                 // the user is trying to stage a nonexistent file for addition.
@@ -86,7 +80,7 @@ public class Repository {
             else { // addFile is staged for removal
                 Index removalIndex = new Index(addFile);
                 curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
-                writeObject(Staging_Area, curSA);
+                writeObject(STAGING_AREA, curSA);
             }
             return;
         }
@@ -99,10 +93,10 @@ public class Repository {
      * TODO: add an entry in the index
      */
     public static void addCommand(String addFile) {
-        File FileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
+        File fileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
-        if (!FileToAdd.exists()) {
+        if (!fileToAdd.exists()) {
             if (!curComTrackings.containsKey(addFile)) {
                 Utils.message("File does not exist."); // failure case, meaning that
                 // the user is trying to stage a nonexistent file for addition.
@@ -110,31 +104,31 @@ public class Repository {
             else { // addFile is staged for removal
                 Index removalIndex = new Index(addFile);
                 curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
-                writeObject(Staging_Area, curSA);
+                writeObject(STAGING_AREA, curSA);
             }
             return;
         }
 
 
-        byte[] addFileContents = readContents(FileToAdd); // TODO: or read as String?
+        byte[] addFileContents = readContents(fileToAdd); // TODO: or read as String?
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
         // the case that current commit has the same file content as the staged one
         if (curComTrackings.containsKey(addFile) && Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
             curSA.remove(addFile); // If this hashmap doesn't contain this key, it just returns null
-            writeObject(Staging_Area, curSA);
+            writeObject(STAGING_AREA, curSA);
             return;
         }
 
         /* Creates a corresponding blob object and serialize it. */
         Blob fileBlob = new Blob(addFileContents);
-        File thisBlob = join(blobs, addFileSha1);
+        File thisBlob = join(BLOBS, addFileSha1);
         MyUtils.createAndWriteObject(thisBlob, fileBlob);
 
         /* Creates the corresponding index in the Staging Area. */
         Index thisIndex = new Index(addFile, addFileSha1);
         curSA.put(thisIndex.getFileName(), thisIndex.getBlobSHA1()); // put method: if curSA.containsKey(addFile),
         // it will act just like curSA.replace(addFile, addFileSha1).
-        writeObject(Staging_Area, curSA);
+        writeObject(STAGING_AREA, curSA);
     }
 
     /** A helper method for add.
@@ -148,7 +142,7 @@ public class Repository {
 
     /* A helper method to get the current indexes from the Staging Area. */
     private static HashMap<String, String> getSA() {
-        return readObject(Staging_Area, HashMap.class);
+        return readObject(STAGING_AREA, HashMap.class);
     }
 
     /**
@@ -167,12 +161,12 @@ public class Repository {
         HashMap<String, String> curComIndexes = buildIndexes(parCom.getFileToBlob(), curIndexes);
         Commit curCommit = new Commit(message, parSha1, curComIndexes);
 
-        File newCommit = join(commits, curCommit.getCommitSHA1());
+        File newCommit = join(COMMITS, curCommit.getCommitSHA1());
         MyUtils.createAndWriteObject(newCommit, curCommit);
 
         // clear the staging area after each commit
         curIndexes.clear();
-        writeObject(Staging_Area, curIndexes);
+        writeObject(STAGING_AREA, curIndexes);
         // move HEAD and master pointers
         Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
         curBranch.move(curCommit.getCommitSHA1());
@@ -194,7 +188,7 @@ public class Repository {
     /* A helper method to get the current commit.*/
     private static Commit getCurCommit() {
         String curComSha1 = getCurCommitSha1();
-        File curComPath = join(commits, curComSha1);
+        File curComPath = join(COMMITS, curComSha1);
         return readObject(curComPath, Commit.class);
     }
 
@@ -216,7 +210,7 @@ public class Repository {
 
     /* A helper method to get a commit by its sha1 value. */
     private static Commit getComBySha1(String sha1) {
-        File targetComPath = join(commits, sha1);
+        File targetComPath = join(COMMITS, sha1);
         return readObject(targetComPath, Commit.class);
     }
 
@@ -262,7 +256,7 @@ public class Repository {
        does not matter.
     */
     public static void globalLog() {
-        List<String> allCommitsSha1 = plainFilenamesIn(commits);
+        List<String> allCommitsSha1 = plainFilenamesIn(COMMITS);
         assert allCommitsSha1 != null;
         for (String commitSha1: allCommitsSha1) {
             logMessage(getComBySha1(commitSha1));
@@ -290,14 +284,14 @@ public class Repository {
 
     /* A helper method to get content from the blob that named [targetSha1]*/
     private static byte[] getFileContentBySha1(String targetSha1) {
-        Blob targetBlob = readObject(join(blobs, targetSha1), Blob.class);
+        Blob targetBlob = readObject(join(BLOBS, targetSha1), Blob.class);
         byte[] targetContnet = targetBlob.getFileContent();
         return targetContnet;
     }
 
     /** Return false if the commit named [commitId] does not exists. */
     private static Boolean checkIfCommitExists(String commitId) {
-        if (join(commits, commitId).exists()) {
+        if (join(COMMITS, commitId).exists()) {
             return true;
         } else {
             message("No commit with that id exists.");
@@ -394,7 +388,7 @@ public class Repository {
         writeContents(HEAD, branchname);
         HashMap<String, String> curSA = getSA();
         curSA.clear();
-        writeObject(Staging_Area, curSA);
+        writeObject(STAGING_AREA, curSA);
     }
 
     /* Creates a new branch with the given name, and points it at the current head
@@ -425,7 +419,7 @@ public class Repository {
         boolean inCurCom = curCommitTracking.containsKey(filename);
         if (staged4add) {
             curSA.remove(filename);
-            writeObject(Staging_Area, curSA);
+            writeObject(STAGING_AREA, curSA);
         }
         if (curCommitTracking.containsKey(filename)) {
             if (join(CWD, filename).exists()) {
@@ -443,7 +437,7 @@ public class Repository {
        lines.
      */
     public static void find(String message) {
-        List<String> allCommitsSha1 = plainFilenamesIn(commits);
+        List<String> allCommitsSha1 = plainFilenamesIn(COMMITS);
         if (allCommitsSha1 == null) {
             message("Found no commit with that message.");
         }
@@ -567,6 +561,6 @@ public class Repository {
         curBranch.move(commitId);
         HashMap<String, String> curSA = getSA();
         curSA.clear();
-        writeObject(Staging_Area, curSA);
+        writeObject(STAGING_AREA, curSA);
     }
 }

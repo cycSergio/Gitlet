@@ -46,7 +46,7 @@ public class Commit implements Serializable {
 
 
     /** The constructor for an initial commit. */
-    public Commit() { // This is public because I want to new an object of this outside the Commit Class.
+    public Commit() {
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
@@ -72,35 +72,35 @@ public class Commit implements Serializable {
      *  extra word for each object the has one value for blobs and another for
      *  commits.
      * */
-   public String getCommitSHA1() {
-       String strTrackings = this.fileToBlob.toString();
-       String strTime = this.timestamp.toString();
-       return Utils.sha1(this.message, this.parent, strTime, strTrackings);
+    public String getCommitSHA1() {
+        String strTrackings = this.fileToBlob.toString();
+        String strTime = this.timestamp.toString();
+        return Utils.sha1(this.message, this.parent, strTime, strTrackings);
    }
 
-   public HashMap<String, String> getFileToBlob() {
+    public HashMap<String, String> getFileToBlob() {
        return this.fileToBlob;
    }
 
-   public String getParent() {
+    public String getParent() {
        return this.parent;
    }
 
-   public String getMessage() {
+    public String getMessage() {
        return this.message;
    }
 
-   public String getFormattedTime() {
+    public String getFormattedTime() {
        // Thu Nov 9 20:00:00 2017 -0800
-       SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
-       return formatTime.format(this.timestamp);
+        SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
+        return formatTime.format(this.timestamp);
    }
 
    /* help checkout command to restore the target file
    *  from the HEAD commit. */
-   public void restoreTargetFile(String filename) {
-       // TODO: tbc, implemented in Repository just for now
-   }
+//    public void restoreTargetFile(String filename) {
+//       // TODO: tbc, implemented in Repository just for now
+//   }
 
 
 }

@@ -2,7 +2,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 
-public class Branch implements Serializable{
+public class Branch implements Serializable {
     // the name of this branch, e.g. master is the default branch name
     private final String branchName;
     // to which commit this branch is currently pointing to

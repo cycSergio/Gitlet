@@ -8,7 +8,7 @@ import java.io.Serializable;
  *
  */
 
-public class Blob implements Serializable{
+public class Blob implements Serializable {
 
     private byte[] fileContent;
 

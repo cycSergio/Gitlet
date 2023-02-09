@@ -11,7 +11,7 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        if (args == null) {
+        if (args.length == 0) {
             Utils.message("Please enter a command.");
             return;
         }

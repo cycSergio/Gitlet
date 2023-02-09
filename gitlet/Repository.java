@@ -535,7 +535,7 @@ public class Repository {
 
     /* Checks out all the files tracked by the given commit. */
     public static void reset(String commitId) {
-        if (checkUntrackedFiles() || checkIfCommitExists()) {
+        if (checkUntrackedFiles() || checkIfCommitExists(commitId)) {
             return;
         }
         List<String> targetComFiles = plainFilenamesIn(join(commits, commitId));

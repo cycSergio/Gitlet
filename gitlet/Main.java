@@ -11,7 +11,6 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
         if (args == null) {
             Utils.message("Please enter a command.");
             return;
@@ -25,7 +24,6 @@ public class Main {
                 String addFile = args[1];
                 Repository.addCommand(addFile);
                 break;
-            // TODO: FILL THE REST IN
             case "commit":
                 // Usage: java gitlet.Main commit [message]
                 // Note that there is no "-m" as real git command.
@@ -35,7 +33,6 @@ public class Main {
                 Repository.commitCommand(args[1]);
                 break;
             case "checkout":
-                // TODO: handle the 'checkout [branch name]' command
                 // Usage1: java gitlet.Main checkout -- [filename]
                 String fst = args[1];
                 if (fst.equals("--")) {

@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static gitlet.Utils.*; // TODO: figure out what's import static?
 
@@ -547,6 +545,14 @@ public class Repository {
         return readObject(join(BRANCH, getHEAD()), Branch.class);
     }
 
+    private static Branch getBranchByName(String branchName) {
+        return readObject(join(BRANCH, branchName), Branch.class);
+    }
+
+    private static String getBranchHeadId(String branchName) {
+        return getBranchByName(branchName).getBranchCommitSha1();
+    }
+
     /** Checks out all the files tracked by the given commit.
      *  Also moves the current branch's head to that commit node.
      *  The staging area is clear. This command is essentially
@@ -563,4 +569,84 @@ public class Repository {
         curSA.clear();
         writeObject(STAGING_AREA, curSA);
     }
+
+    /** Merges files from the given branch into the current branch.
+     *  TODO: how to identify the split point?
+     *  TODO: encode the merge rules to determine the merge result
+     *  TODO: deal with merge conflict */
+    public static void merge(String branchName) {
+        Commit head = getCurCommit();
+        Commit other = getComBySha1(getBranchHeadId(branchName));
+        Commit split = getSplitPoint(head, other);
+        mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
+
+    }
+
+    /** Returns the split point, which is the latest common ancestor
+     *  of the current and given branch heads. */
+    private static Commit getSplitPoint(Commit head, Commit other) {
+        Queue<Commit> commitsQueue = new LinkedList<>();
+        commitsQueue.add(head);
+        commitsQueue.add(other);
+        HashSet<String> checkedCommitIds = new HashSet<>();
+        Commit curCheck;
+        Commit curCheckParent;
+        String curCheckParentId;
+        while (true) {
+            curCheck = commitsQueue.poll();
+            curCheckParentId = curCheck.getParent();
+            curCheckParent = getComBySha1(curCheckParentId);
+            if (checkedCommitIds.contains(curCheckParentId)) {
+                return curCheckParent;
+            }
+            commitsQueue.add(curCheckParent);
+            checkedCommitIds.add(curCheckParentId);
+        }
+    }
+
+    private static void mergeByrules(HashMap<String, String> split,
+                                     HashMap<String, String> head,
+                                     HashMap<String, String> other,
+                                     String branchName) {
+        HashSet<String> checkedFiles = new HashSet<>();
+        String headSha1;
+        String splitSha1;
+        String otherSha1;
+        for (String filename: head.keySet()) {
+            headSha1 = head.get(filename);
+            splitSha1 = split.get(filename);
+            otherSha1 = other.get(filename);
+            if (Objects.equals(otherSha1, splitSha1) || (splitSha1 == null && otherSha1 == null)) {
+                checkout(filename);
+                addCommand(filename);
+            } else if (Objects.equals(headSha1, splitSha1)) {
+                if (otherSha1 != null) {
+                    checkout(getBranchHeadId(branchName), filename);
+                    addCommand(filename);
+                } else {
+                    restrictedDelete(filename);
+                    addCommand(filename); // staged for removal
+                }
+            } else if (!Objects.equals(headSha1, splitSha1)) {
+                go to #3
+            }
+            checkedFiles.add(filename);
+        }
+
+        for (String filename: other.keySet()) {
+            headSha1 = head.get(filename);
+            splitSha1 = split.get(filename);
+            otherSha1 = other.get(filename);
+            if (checkedFiles.contains(filename)) { //排除了other和head的交集
+                continue;
+            }
+            if (splitSha1 == null) {
+                checkout(getBranchHeadId(branchName), filename);
+                addCommand(filename);
+            }
+            checkedFiles.add(filename);
+        }
+    }
+
+
 }

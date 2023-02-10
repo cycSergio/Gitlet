@@ -83,6 +83,10 @@ public class Main {
             case "reset":
                 Repository.reset(args[1]);
                 break;
+            case "merge":
+                // Usage: java gitlet.Main merge [branch name]
+                Repository.merge(args[1]);
+                break;
             default:
                 Utils.message("No command with that name exists.");
         }

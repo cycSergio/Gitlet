@@ -487,7 +487,7 @@ public class Repository {
         }
         System.out.println();
         // then list all the staged files -- files that are staged for addition
-        System.out.println("=== Staged files ===");
+        System.out.println("=== Staged Files ===");
         HashMap<String, String> curSA = getSA(); // TODO: sort this list!
         for (String filename:curSA.keySet()) {
             if (curSA.get(filename) != null) {
@@ -598,7 +598,7 @@ public class Repository {
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
         mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
-        commitCommand("Merged " + branchName + " " + "into " + getHEAD());
+        commitCommand("Merged " + branchName + " " + "into " + getHEAD() + ".");
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -674,7 +674,7 @@ public class Repository {
         writeContents(conflictFile,
                 "<<<<<<< HEAD", "\n",
                 headContent, "=======", "\n",
-                otherContent);
+                otherContent, ">>>>>>>", "\n");
         addCommand(filename);
         System.out.println("Encountered a merge conflict.");
     }

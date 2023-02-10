@@ -598,7 +598,7 @@ public class Repository {
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
         mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
-        commitCommand("Merged " + branchName + "into" + getHEAD());
+        commitCommand("Merged " + branchName + " " + "into " + getHEAD());
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -635,10 +635,9 @@ public class Repository {
             headSha1 = head.get(filename);
             splitSha1 = split.get(filename);
             otherSha1 = other.get(filename);
-            if (Objects.equals(otherSha1, splitSha1) || (splitSha1 == null && otherSha1 == null)) {
-                checkout(filename);
-                addCommand(filename);
-            } else if (Objects.equals(headSha1, splitSha1)) {
+            if (Objects.equals(otherSha1, splitSha1) || Objects.equals(headSha1, otherSha1)) {
+                continue;
+            } else if (Objects.equals(headSha1, splitSha1) && !Objects.equals(otherSha1, splitSha1)) {
                 if (otherSha1 != null) {
                     checkout(getBranchHeadId(branchName), filename);
                     addCommand(filename);
@@ -653,15 +652,16 @@ public class Repository {
         }
 
         for (String filename: other.keySet()) {
-            headSha1 = head.get(filename);
-            splitSha1 = split.get(filename);
             otherSha1 = other.get(filename);
+            splitSha1 = split.get(filename);
             if (checkedFiles.contains(filename)) {
                 continue;
             }
             if (splitSha1 == null) {
                 checkout(getBranchHeadId(branchName), filename);
                 addCommand(filename);
+            } else if (splitSha1 != null && splitSha1.equals(otherSha1)) {
+                continue;
             }
             checkedFiles.add(filename);
         }

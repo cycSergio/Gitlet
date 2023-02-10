@@ -525,11 +525,15 @@ public class Repository {
         System.out.println();
     }
 
+    private static Boolean checkBranchExists(String branchName) {
+        return join(BRANCH, branchName).exists();
+    }
+
     /* Deletes the branch with the given name. This only means to delete the pointer
     *  associated with the branch; it does not mean to delete all commits that
     *  were created under the branch, or anything like that. */
     public static void rmBranch(String branchname) {
-        if (!join(BRANCH, branchname).exists()) {
+        if (!checkBranchExists(branchname)) {
             message("A branch with that name does not exist.");
             return;
         }
@@ -575,6 +579,21 @@ public class Repository {
      *  TODO: encode the merge rules to determine the merge result
      *  TODO: deal with merge conflict */
     public static void merge(String branchName) {
+        if (!getSA().isEmpty()) {
+            message("You have uncommitted changes.");
+            return;
+        }
+        if (!checkBranchExists(branchName)) {
+            message("A branch with that name does not exist.");
+            return;
+        }
+        if (getHEAD().equals(branchName)) {
+            message("Cannot merge a branch with itself.");
+            return;
+        }
+        if (checkUntrackedFiles()) {
+            return;
+        }
         Commit head = getCurCommit();
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
@@ -637,7 +656,7 @@ public class Repository {
             headSha1 = head.get(filename);
             splitSha1 = split.get(filename);
             otherSha1 = other.get(filename);
-            if (checkedFiles.contains(filename)) { 
+            if (checkedFiles.contains(filename)) {
                 continue;
             }
             if (splitSha1 == null) {

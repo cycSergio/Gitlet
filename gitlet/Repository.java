@@ -579,7 +579,7 @@ public class Repository {
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
         mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
-
+        commitCommand("Merged " + branchName + "into" + getHEAD());
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -628,7 +628,7 @@ public class Repository {
                     addCommand(filename); // staged for removal
                 }
             } else if (!Objects.equals(headSha1, splitSha1)) {
-                go to #3
+                stageMergeConflict(filename, headSha1, otherSha1);
             }
             checkedFiles.add(filename);
         }
@@ -637,7 +637,7 @@ public class Repository {
             headSha1 = head.get(filename);
             splitSha1 = split.get(filename);
             otherSha1 = other.get(filename);
-            if (checkedFiles.contains(filename)) { //排除了other和head的交集
+            if (checkedFiles.contains(filename)) { 
                 continue;
             }
             if (splitSha1 == null) {
@@ -646,6 +646,18 @@ public class Repository {
             }
             checkedFiles.add(filename);
         }
+    }
+
+    private static void stageMergeConflict(String filename, String headSha1, String otherSha1) {
+        byte[] headContent = getFileContentBySha1(headSha1);
+        byte[] otherContent = getFileContentBySha1(otherSha1);
+        File conflictFile = join(CWD, filename);
+        writeContents(conflictFile,
+                "<<<<<<< HEAD", "\n",
+                headContent, "=======", "\n",
+                otherContent);
+        addCommand(filename);
+        System.out.println("Encountered a merge conflict.");
     }
 
 

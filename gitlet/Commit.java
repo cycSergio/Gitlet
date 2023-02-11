@@ -37,7 +37,7 @@ public class Commit implements Serializable {
 
     /** The mapping of file names to blob references for this commit. */
     private final HashMap<String, String> fileToBlob;
-    // TODO: fileToBlob or indexes?? you need to uniform the rules
+    // fileToBlob or indexes?? you need to uniform the rules ??????????????????
 
     /** The parent of this commit. */
     private final ArrayList<String> parent = new ArrayList<>();
@@ -60,10 +60,10 @@ public class Commit implements Serializable {
     }
 
     /** the constructor for merge commit */
-    public Commit(String message, String parent, String parent2, HashMap<String, String> fileToBlob) {
+    public Commit(String message, String par1, String par2, HashMap<String, String> fileToBlob) {
         this.message = message;
-        this.parent.add(0, parent); // the first parent
-        this.parent.add(1, parent2); // the second parent
+        this.parent.add(0, par1); // the first parent
+        this.parent.add(1, par2); // the second parent
         this.fileToBlob = fileToBlob;
         this.timestamp = new Date();
     }
@@ -80,17 +80,17 @@ public class Commit implements Serializable {
      *  commits.
      * */
      public String getCommitSHA1() {
-        String strTrackings = this.fileToBlob.toString();
-        String strTime = this.timestamp.toString();
-        return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
+         String strTrackings = this.fileToBlob.toString();
+         String strTime = this.timestamp.toString();
+         return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
    } // TODO: remember this!!!!!!! why you fail on merge-parent2!!!!!!!!
 
      public HashMap<String, String> getFileToBlob() {
-       return this.fileToBlob;
+         return this.fileToBlob;
    }
 
      public String getFirstParent() {
-       return this.parent.get(0);
+        return this.parent.get(0);
    }
 
     public String getSecondParent() {
@@ -98,11 +98,11 @@ public class Commit implements Serializable {
    }
 
    public String getShortFirstParent() {
-       return getFirstParent().substring(0, 7);
+        return getFirstParent().substring(0, 7);
    }
 
     public String getShortSecondParent() {
-        return getSecondParent().substring(0, 7);
+         return getSecondParent().substring(0, 7);
     }
 
     public void addSecondParent(String secondParentId) {
@@ -114,19 +114,12 @@ public class Commit implements Serializable {
     }
 
     public String getMessage() {
-       return this.message;
+         return this.message;
    }
 
+    // Thu Nov 9 20:00:00 2017 -0800
     public String getFormattedTime() {
-       // Thu Nov 9 20:00:00 2017 -0800
-        SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
-        return formatTime.format(this.timestamp);
+         SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
+         return formatTime.format(this.timestamp);
    }
-
-   /* help checkout command to restore the target file
-   *  from the HEAD commit. */
-//    public void restoreTargetFile(String filename) {
-//       // TODO: tbc, implemented in Repository just for now
-//   }
-
 }

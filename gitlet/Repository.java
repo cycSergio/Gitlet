@@ -44,7 +44,7 @@ public class Repository {
      */
     public static void initCommand() {
         if (GITLET_DIR.exists()) {
-            Utils.message("A Gitlet version-control system already exists in the current directory.");
+            message("A Gitlet version-control system already exists in the current directory.");
             return;
         }
         GITLET_DIR.mkdir();
@@ -62,7 +62,7 @@ public class Repository {
         Branch defaultMaster = new Branch(initialCommit.getCommitSHA1());
         MyUtils.createAndWriteObject(join(BRANCH, defaultMaster.getBranchName()), defaultMaster);
         MyUtils.createFile(HEAD);
-        Utils.writeContents(HEAD, defaultMaster.getBranchName()); // TODO: to be confirmed at Path storage
+        Utils.writeContents(HEAD, defaultMaster.getBranchName());
     }
 
     /* Stage one file for removal. This is part of the add command function. */
@@ -74,10 +74,10 @@ public class Repository {
             if (!curComTrackings.containsKey(addFile)) {
                 Utils.message("File does not exist."); // failure case, meaning that
                 // the user is trying to stage a nonexistent file for addition.
-            }
-            else { // addFile is staged for removal
+            } else { // addFile is staged for removal
                 Index removalIndex = new Index(addFile);
-                curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
+                curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1());
+                // key: filename, value: sha1
                 writeObject(STAGING_AREA, curSA);
             }
             return;
@@ -98,10 +98,10 @@ public class Repository {
             if (!curComTrackings.containsKey(addFile)) {
                 Utils.message("File does not exist."); // failure case, meaning that
                 // the user is trying to stage a nonexistent file for addition.
-            }
-            else { // addFile is staged for removal
+            } else { // addFile is staged for removal
                 Index removalIndex = new Index(addFile);
-                curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1()); // key: filename, value: sha1
+                curSA.put(removalIndex.getFileName(), removalIndex.getBlobSHA1());
+                // key: filename, value: sha1
                 writeObject(STAGING_AREA, curSA);
             }
             return;
@@ -124,8 +124,8 @@ public class Repository {
 
         /* Creates the corresponding index in the Staging Area. */
         Index thisIndex = new Index(addFile, addFileSha1);
-        curSA.put(thisIndex.getFileName(), thisIndex.getBlobSHA1()); // put method: if curSA.containsKey(addFile),
-        // it will act just like curSA.replace(addFile, addFileSha1).
+        curSA.put(thisIndex.getFileName(), thisIndex.getBlobSHA1()); // put method:
+        // if curSA.containsKey(addFile), it'll act just like curSA.replace(addFile, addFileSha1).
         writeObject(STAGING_AREA, curSA);
     }
 
@@ -214,9 +214,9 @@ public class Repository {
     }
 
     /* A helper method for commitCommand to correctly get all the tracked files
-     *  from the staging area.
-     */
-    private static HashMap<String, String> buildIndexes(HashMap<String, String>parentHM, HashMap<String, String>SA) {
+     *  from the staging area. */
+    private static HashMap<String, String> buildIndexes(
+            HashMap<String, String> parentHM, HashMap<String, String> SA) {
         SA.forEach((filename, sha1) -> {
             File filePath = join(CWD, filename);
             parentHM.putIfAbsent(filename, sha1);
@@ -225,7 +225,7 @@ public class Repository {
             } else if (parentHM.containsKey(filename)) {
                 parentHM.replace(filename, sha1);
             }
-                });
+        });
         return parentHM;
     }
 
@@ -279,10 +279,6 @@ public class Repository {
          */
         StringBuilder logMes = new StringBuilder();
         logMes.append("===").append("\n");
-//        if (curCommit.sizeOfParent() == 2) {
-//            logMes.append("Merge: ").append(curCommit.getShortFirstParent());
-//            logMes.append(" ").append(curCommit.getShortSecondParent());
-//        }
         String comTime = curCommit.getFormattedTime();
         String comMes = curCommit.getMessage();
         logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
@@ -397,7 +393,8 @@ public class Repository {
         HashMap<String, String> curSA = getSA();
         for (String CWDfile:allCWDfiles) {
             if (!curTracking.containsKey(CWDfile) && !curSA.containsKey(CWDfile)) {
-                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                message("There is an untracked file in the way; " +
+                        "delete it, or add and commit it first.");
                 return true;
             }
         }
@@ -405,8 +402,7 @@ public class Repository {
     }
 
     /** A helper method to checks out all files from a certain commit
-     *  and overwrites the current CWD files.
-     */
+     *  and overwrites the current CWD files. */
     private static void overwriteCWDbyCertainCommit(String commitId) {
         List<String> allCWDfiles = plainFilenamesIn(CWD);
         Commit targetCom = getComBySha1(commitId);
@@ -638,7 +634,7 @@ public class Repository {
         overwriteCWDbyCertainCommit(commitId);
         Branch curBranch = getCurBranch();
         curBranch.move(commitId);
-        writeObject(join(BRANCH, curBranch.getBranchName()), curBranch); // TODO: tend to forget write!!!!!!
+        writeObject(join(BRANCH, curBranch.getBranchName()), curBranch); //TODO:tend to forget write
         HashMap<String, String> curSA = getSA();
         curSA.clear();
         writeObject(STAGING_AREA, curSA);
@@ -676,9 +672,9 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
-        Boolean hasConflict = mergeByrules(split.getFileToBlob(),head.getFileToBlob(), other.getFileToBlob(), branchName);
-        mergeCommit("Merged " + branchName + " " + "into " + getHEAD() + ".", other.getCommitSHA1());
-
+        mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
+        mergeCommit("Merged " + branchName + " " + "into " + getHEAD() + ".",
+                other.getCommitSHA1());
 //        Commit mergedCommit = getCurCommit();
 //        mergedCommit.addSecondParent(other.getCommitSHA1()); // TODO: think about this!!!!!!
 //        writeObject(join(COMMITS, mergedCommit.getCommitSHA1()), mergedCommit);

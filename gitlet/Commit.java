@@ -48,13 +48,13 @@ public class Commit implements Serializable {
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
-        // no parent, just an empty list
+        this.parent.add(0, "0"); // initial commit has no parent, place a "0" here to avoid nullExp
     }
 
     /* The constructor for general commits. */
     public Commit(String message, String parent, HashMap<String, String> fileToBlob) {
         this.message = message;
-        this.parent.add(parent); // the first parent
+        this.parent.add(0, parent); // the first parent
         this.fileToBlob = fileToBlob;
         this.timestamp = new Date(); // this supposed to be the current time
     }

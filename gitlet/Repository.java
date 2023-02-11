@@ -206,8 +206,23 @@ public class Repository {
         return parentHM;
     }
 
+    private static Commit getInitialCommit() {
+        List<String> allCommmitsSha1 = plainFilenamesIn(COMMITS);
+        Commit curCommit;
+        for (String commitSha1: allCommmitsSha1) {
+            curCommit = getComBySha1(commitSha1);
+            if (Objects.equals(curCommit.getMessage(), "initial commit")) {
+                return curCommit;
+            }
+        }
+        return null;
+    }
+
     /* A helper method to get a commit by its sha1 value. */
     private static Commit getComBySha1(String sha1) {
+        if (Objects.equals(sha1, "0")) {
+            return getInitialCommit();
+        }
         File targetComPath = join(COMMITS, sha1);
         return readObject(targetComPath, Commit.class);
     }
@@ -608,7 +623,7 @@ public class Repository {
         Commit head = getCurCommit();
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
-        if (Objects.equals(split.getCommitSHA1(), other.getCommitSHA1())) {
+        if (Objects.equals(split.getMessage(), "initial commit") || Objects.equals(split.getCommitSHA1(), other.getCommitSHA1())) {
             message("Given branch is an ancestor of the current branch.");
             return;
         }
@@ -623,6 +638,7 @@ public class Repository {
         if (hasConflict) {
             Commit mergedCommit = getCurCommit();
             mergedCommit.addSecondParent(other.getCommitSHA1());
+            writeObject(join(COMMITS, mergedCommit.getCommitSHA1()), mergedCommit);
         }
     }
 
@@ -638,6 +654,10 @@ public class Repository {
         String curCheckParentId;
         while (true) {
             curCheck = commitsQueue.poll();
+            checkedCommitIds.add(curCheck.getCommitSHA1());
+            if (Objects.equals(curCheck.getMessage(), "initial commit")) {
+                return curCheck; // it's already the initial commit node
+            }
             curCheckParentId = curCheck.getFirstParent();
             curCheckParent = getComBySha1(curCheckParentId);
             if (checkedCommitIds.contains(curCheckParentId)) {
@@ -692,6 +712,8 @@ public class Repository {
                 addCommand(filename);
             } else if (splitSha1 != null && splitSha1.equals(otherSha1)) {
                 continue;
+            } else if (splitSha1 != null && !splitSha1.equals(otherSha1)) {
+                stageMergeConflict(filename, null, otherSha1);
             }
             checkedFiles.add(filename);
         }

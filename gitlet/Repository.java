@@ -608,6 +608,15 @@ public class Repository {
         Commit head = getCurCommit();
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
+        if (Objects.equals(split.getCommitSHA1(), other.getCommitSHA1())) {
+            message("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (Objects.equals(head.getCommitSHA1(), split.getCommitSHA1())) {
+            checkoutBranch(branchName);
+            message("Current branch fast-forwarded.");
+            return;
+        }
         Boolean hasConflict = mergeByrules(split.getFileToBlob(),
                 head.getFileToBlob(), other.getFileToBlob(), branchName);
         commitCommand("Merged " + branchName + " " + "into " + getHEAD() + ".");

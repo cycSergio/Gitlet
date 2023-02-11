@@ -595,6 +595,7 @@ public class Repository {
         overwriteCWDbyCertainCommit(commitId);
         Branch curBranch = getCurBranch();
         curBranch.move(commitId);
+        writeObject(join(BRANCH, curBranch.getBranchName()), curBranch); // TODO: tend to forget write!!!!!!
         HashMap<String, String> curSA = getSA();
         curSA.clear();
         writeObject(STAGING_AREA, curSA);

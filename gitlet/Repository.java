@@ -279,13 +279,17 @@ public class Repository {
          */
         StringBuilder logMes = new StringBuilder();
         logMes.append("===").append("\n");
+//        if (curCommit.sizeOfParent() == 2) {
+//            logMes.append("Merge: ").append(curCommit.getShortFirstParent());
+//            logMes.append(" ").append(curCommit.getShortSecondParent());
+//        }
+        String comTime = curCommit.getFormattedTime();
+        String comMes = curCommit.getMessage();
+        logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
         if (curCommit.sizeOfParent() == 2) {
             logMes.append("Merge: ").append(curCommit.getShortFirstParent());
             logMes.append(" ").append(curCommit.getShortSecondParent());
         }
-        String comTime = curCommit.getFormattedTime();
-        String comMes = curCommit.getMessage();
-        logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
         logMes.append("Date: ").append(comTime).append("\n");
         logMes.append(comMes).append("\n");
         System.out.println(logMes);

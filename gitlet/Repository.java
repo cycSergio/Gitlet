@@ -333,7 +333,10 @@ public class Repository {
      *  */
     public static void checkout(String commitId, String filename) {
         // TODO: needs refactor, as it's the same as the first checkout command.
-        if (!checkIfCommitExists(commitId)) {
+        if (commitId.length() < 40) { // the user uses a short version of commit id
+            commitId = convertShortID2full(commitId);
+        }
+        if (!checkIfCommitExists(commitId) || commitId == null) {
             return;
         }
         HashMap<String, String> targetTracking = getComBySha1(commitId).getFileToBlob();
@@ -344,6 +347,19 @@ public class Repository {
         String targetSha1 = targetTracking.get(filename);
         File targetFile = join(CWD, filename);
         writeContents(targetFile, getFileContentBySha1(targetSha1));
+    }
+
+    /** Returns the full version of the short version of the commit id.
+     *  If that commit id does not exist in COMMITS, just returns null. */
+    private static String convertShortID2full(String shortId) {
+        int len = shortId.length();
+        List<String> allCommitIds = plainFilenamesIn(COMMITS);
+        for (String commitId: allCommitIds) {
+            if (commitId.substring(0, len).equals(shortId)) {
+                return commitId;
+            }
+        }
+        return null;
     }
 
     /** Return true if there are untracked files. */

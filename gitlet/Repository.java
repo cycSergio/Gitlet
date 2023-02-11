@@ -3,18 +3,18 @@ package gitlet;
 import java.io.File;
 import java.util.*;
 
-import static gitlet.Utils.*; // TODO: figure out what's import static?
+import static gitlet.Utils.*;
 
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
+ *  It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
  *  @author cyc
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
+     * add instance variables here.
      *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
@@ -67,7 +67,7 @@ public class Repository {
 
     /* Stage one file for removal. This is part of the add command function. */
     private static void add4removal(String addFile) {
-        File fileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
+        File fileToAdd = join(CWD, addFile);
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
         if (!fileToAdd.exists()) {
@@ -86,12 +86,12 @@ public class Repository {
 
     /**
      * add a copy of the file to the staging area.
-     * TODO: from String "addFile", get the actual file that named addFile
-     * TODO: addFile should be transferred to a blob and stored in .git/blobs
-     * TODO: add an entry in the index
+     * 1. from String "addFile", get the actual file that named addFile
+     * 2. addFile should be transferred to a blob and stored in .git/blobs
+     * 3. add an entry in the index
      */
     public static void addCommand(String addFile) {
-        File fileToAdd = join(CWD, addFile); // TODO: not sure, to be confirmed
+        File fileToAdd = join(CWD, addFile);
         HashMap<String, String> curComTrackings = getCurTrackings();
         HashMap<String, String> curSA = getSA();
         if (!fileToAdd.exists()) {
@@ -108,7 +108,7 @@ public class Repository {
         }
 
 
-        byte[] addFileContents = readContents(fileToAdd); // TODO: or read as String?
+        byte[] addFileContents = readContents(fileToAdd);
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
         // the case that current commit has the same file content as the staged one
         if (curComTrackings.containsKey(addFile) && Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
@@ -145,9 +145,9 @@ public class Repository {
 
     /**
      * The spec says "the commit tree". Is there actually a tree structure?
-     *  TODO: include everything in the staging area in the next commit
-     *  TODO: serialize the new-made commit into .gitlet/commits/
-     *  TODO: clear the staging area
+     *  1. include everything in the staging area in the next commit
+     *  2. serialize the new-made commit into .gitlet/commits/
+     *  3. clear the staging area
      */
     public static void commitCommand(String message) {
         String parSha1 = getCurCommitSha1();
@@ -189,7 +189,7 @@ public class Repository {
         curIndexes.clear();
         writeObject(STAGING_AREA, curIndexes);
         // move HEAD and master pointers
-        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
+        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class);
         curBranch.move(curCommit.getCommitSHA1());
         writeObject(join(BRANCH, getHEAD()), curBranch);
     }
@@ -253,8 +253,7 @@ public class Repository {
     /* Starting at the current head commit, display information about each
     *  commit backwards along the commit tree until the initial commit,
     *  following the first parent commit links, ignoring any second parents
-    *  found in merge commits.
-    *  TODO: the merge case is not implemented yet. */
+    *  found in merge commits. */
     public static void logCommand() {
         Commit curCommit = getCurCommit();
         while (true) {
@@ -284,12 +283,12 @@ public class Repository {
         logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
         if (curCommit.sizeOfParent() == 2) {
             logMes.append("Merge: ").append(curCommit.getShortFirstParent());
-            logMes.append(" ").append(curCommit.getShortSecondParent());
+            logMes.append(" ").append(curCommit.getShortSecondParent()).append("\n");
         }
         logMes.append("Date: ").append(comTime).append("\n");
         logMes.append(comMes).append("\n");
         System.out.println(logMes);
-        // TODO: merge them into one method?
+        // to sloppy??
     }
 
     /* Displays information about all commits ever made. The order of the commits
@@ -351,11 +350,9 @@ public class Repository {
      *  id, and puts it in the working directory, overwriting the version of the
      *  file that's already there if there is one. The new version of the file
      *  is not staged.
-     *  // TODO: the spec says it should also support abbreviation of commit id,
-     *      as in real git. How?
      *  */
     public static void checkout(String commitId, String filename) {
-        // TODO: needs refactor, as it's the same as the first checkout command.
+        // needs refactor, as it's the same as the first checkout command.
         if (commitId.length() < 40) { // the user uses a short version of commit id
             commitId = convertShortID2full(commitId);
         }
@@ -467,7 +464,7 @@ public class Repository {
             }
         }
         Branch newBranch = new Branch(branchName, getCurCommitSha1());
-        newBranch.branchWrite(); // TODO: to be confirmed
+        newBranch.branchWrite();
     }
 
     /* Unstage the file if it is currently staged for addition. If the file is tracked
@@ -486,7 +483,7 @@ public class Repository {
         }
         if (curCommitTracking.containsKey(filename)) {
             if (join(CWD, filename).exists()) {
-                restrictedDelete(join(CWD, filename)); // TODO: to be confirmed and refactor
+                restrictedDelete(join(CWD, filename));
             }
             addCommand(filename);
         }
@@ -553,7 +550,7 @@ public class Repository {
         System.out.println();
         // then list all the staged files -- files that are staged for addition
         System.out.println("=== Staged Files ===");
-        HashMap<String, String> curSA = getSA(); // TODO: sort this list!
+        HashMap<String, String> curSA = getSA();
         for (String filename:curSA.keySet()) {
             if (curSA.get(filename) != null) {
                 System.out.println(filename);
@@ -641,9 +638,9 @@ public class Repository {
     }
 
     /** Merges files from the given branch into the current branch.
-     *  TODO: how to identify the split point?
-     *  TODO: encode the merge rules to determine the merge result
-     *  TODO: deal with merge conflict */
+     *  1. how to identify the split point?
+     *  2. encode the merge rules to determine the merge result
+     *  3. deal with merge conflict */
     public static void merge(String branchName) {
         if (!getSA().isEmpty()) {
             message("You have uncommitted changes.");
@@ -770,6 +767,5 @@ public class Repository {
         addCommand(filename);
         System.out.println("Encountered a merge conflict.");
     }
-
 
 }

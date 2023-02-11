@@ -59,6 +59,15 @@ public class Commit implements Serializable {
         this.timestamp = new Date(); // this supposed to be the current time
     }
 
+    /** the constructor for merge commit */
+    public Commit(String message, String parent, String parent2, HashMap<String, String> fileToBlob) {
+        this.message = message;
+        this.parent.add(0, parent); // the first parent
+        this.parent.add(1, parent2); // the second parent
+        this.fileToBlob = fileToBlob;
+        this.timestamp = new Date();
+    }
+
     /** the hashing method for this commit
      *  If two commits have the same SHA1-id, it means they have the same
      *  metadata, the same mapping of names to references, and the same
@@ -74,7 +83,7 @@ public class Commit implements Serializable {
         String strTrackings = this.fileToBlob.toString();
         String strTime = this.timestamp.toString();
         return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
-   }
+   } // TODO: remember this!!!!!!! why you fail on merge-parent2!!!!!!!!
 
      public HashMap<String, String> getFileToBlob() {
        return this.fileToBlob;
@@ -89,11 +98,11 @@ public class Commit implements Serializable {
    }
 
    public String getShortFirstParent() {
-       return this.parent.get(0).substring(0, 7);
+       return getFirstParent().substring(0, 7);
    }
 
     public String getShortSecondParent() {
-        return this.parent.get(1).substring(0, 7);
+        return getSecondParent().substring(0, 7);
     }
 
     public void addSecondParent(String secondParentId) {

@@ -171,6 +171,29 @@ public class Repository {
         writeObject(join(BRANCH, getHEAD()), curBranch);
     }
 
+    /** A particular method for merge commit cause it has two parents. */
+    private static void mergeCommit(String message, String secondParent) {
+        String parSha1 = getCurCommitSha1();
+        Commit parCom = getCurCommit();
+        HashMap<String, String> curIndexes = getSA();
+        if (curIndexes.isEmpty()) {
+            message("No changes added to the commit.");
+        }
+        HashMap<String, String> curComIndexes = buildIndexes(parCom.getFileToBlob(), curIndexes);
+        Commit curCommit = new Commit(message, parSha1, secondParent, curComIndexes);
+
+        File newCommit = join(COMMITS, curCommit.getCommitSHA1());
+        MyUtils.createAndWriteObject(newCommit, curCommit);
+
+        // clear the staging area after each commit
+        curIndexes.clear();
+        writeObject(STAGING_AREA, curIndexes);
+        // move HEAD and master pointers
+        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
+        curBranch.move(curCommit.getCommitSHA1());
+        writeObject(join(BRANCH, getHEAD()), curBranch);
+    }
+
     /* A helper method to get the HEAD's content. */
     private static String getHEAD() {
         return readContentsAsString(HEAD);
@@ -649,14 +672,12 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
-        Boolean hasConflict = mergeByrules(split.getFileToBlob(),
-                head.getFileToBlob(), other.getFileToBlob(), branchName);
-        commitCommand("Merged " + branchName + " " + "into " + getHEAD() + ".");
-        if (hasConflict) {
-            Commit mergedCommit = getCurCommit();
-            mergedCommit.addSecondParent(other.getCommitSHA1());
-            writeObject(join(COMMITS, mergedCommit.getCommitSHA1()), mergedCommit);
-        }
+        Boolean hasConflict = mergeByrules(split.getFileToBlob(),head.getFileToBlob(), other.getFileToBlob(), branchName);
+        mergeCommit("Merged " + branchName + " " + "into " + getHEAD() + ".", other.getCommitSHA1());
+
+//        Commit mergedCommit = getCurCommit();
+//        mergedCommit.addSecondParent(other.getCommitSHA1()); // TODO: think about this!!!!!!
+//        writeObject(join(COMMITS, mergedCommit.getCommitSHA1()), mergedCommit);
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -675,7 +696,8 @@ public class Repository {
             if (Objects.equals(curCheck.getMessage(), "initial commit")) {
                 return curCheck; // it's already the initial commit node
             }
-            curCheckParentId = curCheck.getFirstParent();
+            curCheckParentId = (curCheck.sizeOfParent() == 1) ? curCheck.getFirstParent() : curCheck.getSecondParent();
+            //curCheckParentId = curCheck.getFirstParent();
             curCheckParent = getComBySha1(curCheckParentId);
             if (checkedCommitIds.contains(curCheckParentId)) {
                 return curCheckParent;

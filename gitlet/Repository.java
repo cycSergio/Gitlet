@@ -280,9 +280,16 @@ public class Repository {
         writeContents(targetFile, getFileContentBySha1(targetSha1));
     }
 
-    /* A helper method to get content from the blob that named [targetSha1]*/
+    /* A helper method to get content from the blob that named [targetSha1]
+    *  If no such blob file exists, just returns an empty byte[] for the
+    *  purpose of making merge conflict work out fine. */
     private static byte[] getFileContentBySha1(String targetSha1) {
-        Blob targetBlob = readObject(join(BLOBS, targetSha1), Blob.class);
+        File targetPath = join(BLOBS, targetSha1);
+        if (!targetPath.exists()) {
+            byte[] empty = {};
+            return empty;
+        }
+        Blob targetBlob = readObject(targetPath, Blob.class);
         byte[] targetContnet = targetBlob.getFileContent();
         return targetContnet;
     }
@@ -645,7 +652,9 @@ public class Repository {
                     restrictedDelete(filename);
                     addCommand(filename); // staged for removal
                 }
-            } else if (!Objects.equals(headSha1, splitSha1)) {
+            } else if (!Objects.equals(headSha1, splitSha1) ||
+                    (otherSha1 == null && !Objects.equals(headSha1, splitSha1)) ||
+                    (!Objects.equals(headSha1, otherSha1) && splitSha1 == null)) {
                 stageMergeConflict(filename, headSha1, otherSha1);
             }
             checkedFiles.add(filename);

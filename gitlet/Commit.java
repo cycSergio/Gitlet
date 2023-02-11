@@ -120,5 +120,4 @@ public class Commit implements Serializable {
 //       // TODO: tbc, implemented in Repository just for now
 //   }
 
-
 }

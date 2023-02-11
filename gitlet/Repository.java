@@ -289,7 +289,7 @@ public class Repository {
     *  purpose of making merge conflict work out fine. */
     private static byte[] getFileContentBySha1(String targetSha1) {
         File targetPath = join(BLOBS, targetSha1);
-        if (!targetPath.exists()) {
+        if (targetSha1 == null) {
             byte[] empty = {};
             return empty;
         }

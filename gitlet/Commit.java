@@ -1,10 +1,8 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.*;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Locale;
 
 
 /** Represents a gitlet commit object.
@@ -42,7 +40,7 @@ public class Commit implements Serializable {
     // TODO: fileToBlob or indexes?? you need to uniform the rules
 
     /** The parent of this commit. */
-    private final String parent;
+    private final ArrayList<String> parent = new ArrayList<>();
 
 
     /** The constructor for an initial commit. */
@@ -50,13 +48,13 @@ public class Commit implements Serializable {
         this.message = "initial commit";
         this.timestamp = new Date(0);
         this.fileToBlob = new HashMap<>(); // initial commit has an empty tracking HashMap
-        this.parent = "";
+        // no parent, just an empty list
     }
 
     /* The constructor for general commits. */
     public Commit(String message, String parent, HashMap<String, String> fileToBlob) {
         this.message = message;
-        this.parent = parent;
+        this.parent.add(parent); // the first parent
         this.fileToBlob = fileToBlob;
         this.timestamp = new Date(); // this supposed to be the current time
     }
@@ -72,19 +70,39 @@ public class Commit implements Serializable {
      *  extra word for each object the has one value for blobs and another for
      *  commits.
      * */
-    public String getCommitSHA1() {
+     public String getCommitSHA1() {
         String strTrackings = this.fileToBlob.toString();
         String strTime = this.timestamp.toString();
-        return Utils.sha1(this.message, this.parent, strTime, strTrackings);
+        return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
    }
 
-    public HashMap<String, String> getFileToBlob() {
+     public HashMap<String, String> getFileToBlob() {
        return this.fileToBlob;
    }
 
-    public String getParent() {
-       return this.parent;
+     public String getFirstParent() {
+       return this.parent.get(0);
    }
+
+    public String getSecondParent() {
+        return this.parent.get(1);
+   }
+
+   public String getShortFirstParent() {
+       return this.parent.get(0).substring(0, 7);
+   }
+
+    public String getShortSecondParent() {
+        return this.parent.get(1).substring(0, 7);
+    }
+
+    public void addSecondParent(String secondParentId) {
+         this.parent.add(1, secondParentId);
+    }
+
+    public int sizeOfParent() {
+         return this.parent.size();
+    }
 
     public String getMessage() {
        return this.message;

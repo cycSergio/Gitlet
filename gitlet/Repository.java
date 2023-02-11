@@ -225,7 +225,7 @@ public class Repository {
             if (Objects.equals(curCommit.getMessage(), "initial commit")) {
                 break;
             }
-            String parSha1 = curCommit.getParent();
+            String parSha1 = curCommit.getFirstParent();
             curCommit = getComBySha1(parSha1);
         }
     }
@@ -241,6 +241,10 @@ public class Repository {
          */
         StringBuilder logMes = new StringBuilder();
         logMes.append("===").append("\n");
+        if (curCommit.sizeOfParent() == 2) {
+            logMes.append("Merge: ").append(curCommit.getShortFirstParent());
+            logMes.append(" ").append(curCommit.getShortSecondParent());
+        }
         String comTime = curCommit.getFormattedTime();
         String comMes = curCommit.getMessage();
         logMes.append("commit ").append(curCommit.getCommitSHA1()).append("\n");
@@ -604,8 +608,13 @@ public class Repository {
         Commit head = getCurCommit();
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
-        mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
+        Boolean hasConflict = mergeByrules(split.getFileToBlob(),
+                head.getFileToBlob(), other.getFileToBlob(), branchName);
         commitCommand("Merged " + branchName + " " + "into " + getHEAD() + ".");
+        if (hasConflict) {
+            Commit mergedCommit = getCurCommit();
+            mergedCommit.addSecondParent(other.getCommitSHA1());
+        }
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -620,7 +629,7 @@ public class Repository {
         String curCheckParentId;
         while (true) {
             curCheck = commitsQueue.poll();
-            curCheckParentId = curCheck.getParent();
+            curCheckParentId = curCheck.getFirstParent();
             curCheckParent = getComBySha1(curCheckParentId);
             if (checkedCommitIds.contains(curCheckParentId)) {
                 return curCheckParent;
@@ -630,7 +639,8 @@ public class Repository {
         }
     }
 
-    private static void mergeByrules(HashMap<String, String> split,
+    /** Returns true if there is a merge conflict! */
+    private static Boolean mergeByrules(HashMap<String, String> split,
                                      HashMap<String, String> head,
                                      HashMap<String, String> other,
                                      String branchName) {
@@ -638,6 +648,7 @@ public class Repository {
         String headSha1;
         String splitSha1;
         String otherSha1;
+        Boolean hasConflict = false;
         for (String filename: head.keySet()) {
             headSha1 = head.get(filename);
             splitSha1 = split.get(filename);
@@ -656,6 +667,7 @@ public class Repository {
                     (otherSha1 == null && !Objects.equals(headSha1, splitSha1)) ||
                     (!Objects.equals(headSha1, otherSha1) && splitSha1 == null)) {
                 stageMergeConflict(filename, headSha1, otherSha1);
+                hasConflict = true;
             }
             checkedFiles.add(filename);
         }
@@ -674,6 +686,7 @@ public class Repository {
             }
             checkedFiles.add(filename);
         }
+        return hasConflict;
     }
 
     private static void stageMergeConflict(String filename, String headSha1, String otherSha1) {

@@ -303,11 +303,11 @@ public class Repository {
     *  If no such blob file exists, just returns an empty byte[] for the
     *  purpose of making merge conflict work out fine. */
     private static byte[] getFileContentBySha1(String targetSha1) {
-        File targetPath = join(BLOBS, targetSha1);
         if (targetSha1 == null) {
             byte[] empty = {};
             return empty;
         }
+        File targetPath = join(BLOBS, targetSha1);
         Blob targetBlob = readObject(targetPath, Blob.class);
         byte[] targetContnet = targetBlob.getFileContent();
         return targetContnet;
@@ -623,7 +623,7 @@ public class Repository {
         Commit head = getCurCommit();
         Commit other = getComBySha1(getBranchHeadId(branchName));
         Commit split = getSplitPoint(head, other);
-        if (Objects.equals(split.getMessage(), "initial commit") || Objects.equals(split.getCommitSHA1(), other.getCommitSHA1())) {
+        if (Objects.equals(split.getCommitSHA1(), other.getCommitSHA1())) {
             message("Given branch is an ancestor of the current branch.");
             return;
         }

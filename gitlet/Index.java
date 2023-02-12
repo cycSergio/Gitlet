@@ -21,7 +21,7 @@ public class Index implements Serializable {
     /* Constructor for removal. */
     public Index(String fileName) {
         this.fileName = fileName;
-        this.blobSHA1 = null; // TODO: is null a proper value for my purpose??
+        this.blobSHA1 = null; // think about ... is null a proper value for my purpose??
     }
 
     public String getFileName() {

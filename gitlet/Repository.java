@@ -110,8 +110,8 @@ public class Repository {
         byte[] addFileContents = readContents(fileToAdd);
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
         // the case that current commit has the same file content as the staged one
-        if (curComTrackings.containsKey(addFile) &&
-                Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
+        if (curComTrackings.containsKey(addFile)
+                && Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
             curSA.remove(addFile); // If this hashmap doesn't contain this key, it just returns null
             writeObject(STAGING_AREA, curSA);
             return;
@@ -691,8 +691,8 @@ public class Repository {
             if (Objects.equals(curCheck.getMessage(), "initial commit")) {
                 return curCheck; // it's already the initial commit node
             }
-            curCheckParentId = (curCheck.sizeOfParent() == 1) ?
-                    curCheck.getFirstParent() : curCheck.getSecondParent();
+            curCheckParentId = (curCheck.sizeOfParent() == 1)
+                    ? curCheck.getFirstParent() : curCheck.getSecondParent();
             //curCheckParentId = curCheck.getFirstParent();
             curCheckParent = getComBySha1(curCheckParentId);
             if (checkedCommitIds.contains(curCheckParentId)) {

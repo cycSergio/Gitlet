@@ -79,17 +79,17 @@ public class Commit implements Serializable {
      *  extra word for each object the has one value for blobs and another for
      *  commits.
      * */
-     public String getCommitSHA1() {
-         String strTrackings = this.fileToBlob.toString();
-         String strTime = this.timestamp.toString();
+    public String getCommitSHA1() {
+        String strTrackings = this.fileToBlob.toString();
+        String strTime = this.timestamp.toString();
          return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
    } // TODO: remember this!!!!!!! why you fail on merge-parent2!!!!!!!!
 
-     public HashMap<String, String> getFileToBlob() {
-         return this.fileToBlob;
+    public HashMap<String, String> getFileToBlob() {
+        return this.fileToBlob;
    }
 
-     public String getFirstParent() {
+   public String getFirstParent() {
         return this.parent.get(0);
    }
 
@@ -97,29 +97,29 @@ public class Commit implements Serializable {
         return this.parent.get(1);
    }
 
-   public String getShortFirstParent() {
+    public String getShortFirstParent() {
         return getFirstParent().substring(0, 7);
    }
 
     public String getShortSecondParent() {
-         return getSecondParent().substring(0, 7);
+        return getSecondParent().substring(0, 7);
     }
 
     public void addSecondParent(String secondParentId) {
-         this.parent.add(1, secondParentId);
+        this.parent.add(1, secondParentId);
     }
 
     public int sizeOfParent() {
-         return this.parent.size();
+        return this.parent.size();
     }
 
     public String getMessage() {
-         return this.message;
+        return this.message;
    }
 
     // Thu Nov 9 20:00:00 2017 -0800
     public String getFormattedTime() {
-         SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
-         return formatTime.format(this.timestamp);
+        SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
+        return formatTime.format(this.timestamp);
    }
 }

@@ -30,7 +30,7 @@ public class Repository {
      */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
-    /* TODO: fill in the rest of this class. */
+    /* fill in the rest of this class. */
     public static final File BLOBS = join(GITLET_DIR, "blobs");
     public static final File COMMITS = join(GITLET_DIR, "commits");
     public static final File STAGING_AREA = join(GITLET_DIR, "index");
@@ -107,11 +107,11 @@ public class Repository {
             return;
         }
 
-
         byte[] addFileContents = readContents(fileToAdd);
         String addFileSha1 = Utils.sha1(MyUtils.getFileContentAsString(addFile));
         // the case that current commit has the same file content as the staged one
-        if (curComTrackings.containsKey(addFile) && Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
+        if (curComTrackings.containsKey(addFile) &&
+                Objects.equals(curComTrackings.get(addFile), addFileSha1)) {
             curSA.remove(addFile); // If this hashmap doesn't contain this key, it just returns null
             writeObject(STAGING_AREA, curSA);
             return;
@@ -166,7 +166,7 @@ public class Repository {
         curIndexes.clear();
         writeObject(STAGING_AREA, curIndexes);
         // move HEAD and master pointers
-        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class); // TODO: change join
+        Branch curBranch = readObject(join(BRANCH, getHEAD()), Branch.class);
         curBranch.move(curCommit.getCommitSHA1());
         writeObject(join(BRANCH, getHEAD()), curBranch);
     }
@@ -214,10 +214,10 @@ public class Repository {
     }
 
     /* A helper method for commitCommand to correctly get all the tracked files
-     *  from the staging area. */
+     *  from the staging area. sa: the Staging area */
     private static HashMap<String, String> buildIndexes(
-            HashMap<String, String> parentHM, HashMap<String, String> SA) {
-        SA.forEach((filename, sha1) -> {
+            HashMap<String, String> parentHM, HashMap<String, String> sa) {
+        sa.forEach((filename, sha1) -> {
             File filePath = join(CWD, filename);
             parentHM.putIfAbsent(filename, sha1);
             if (parentHM.containsKey(filename) && (!filePath.exists())) {
@@ -385,13 +385,13 @@ public class Repository {
     /** Return true if there are untracked files. */
     private static boolean checkUntrackedFiles() {
         // If a file in CWD is not tracked in the current Commit/SA, then it's untracked.
-        List<String> allCWDfiles = plainFilenamesIn(CWD);
+        List<String> allCwdFiles = plainFilenamesIn(CWD);
         HashMap<String, String> curTracking = getCurTrackings();
         HashMap<String, String> curSA = getSA();
-        for (String CWDfile:allCWDfiles) {
-            if (!curTracking.containsKey(CWDfile) && !curSA.containsKey(CWDfile)) {
-                message("There is an untracked file in the way; " +
-                        "delete it, or add and commit it first.");
+        for (String cwdFile:allCwdFiles) {
+            if (!curTracking.containsKey(cwdFile) && !curSA.containsKey(cwdFile)) {
+                message("There is an untracked file in the way; "
+                        + "delete it, or add and commit it first.");
                 return true;
             }
         }
@@ -406,9 +406,9 @@ public class Repository {
         HashMap<String, String> targetTracking = targetCom.getFileToBlob();
         String targetSha1;
 //        Blob targetBlob;;
-        for (String CWDfile:allCWDfiles) {
-            if (!targetTracking.containsKey(CWDfile)) {
-                restrictedDelete(join(CWD, CWDfile));
+        for (String cwdFile:allCWDfiles) {
+            if (!targetTracking.containsKey(cwdFile)) {
+                restrictedDelete(join(CWD, cwdFile));
             }
         }
         for (String trackingFile: targetTracking.keySet()) {
@@ -454,7 +454,7 @@ public class Repository {
     /* Creates a new branch with the given name, and points it at the current head
      *  commit. This command does not immediately switch to the newly created branch.
      */
-    // TODO: to be tested
+    //
     public static void branch(String branchName) {
         List<String> allBranches = Utils.plainFilenamesIn(BRANCH);
         assert allBranches != null;
@@ -631,7 +631,7 @@ public class Repository {
         overwriteCWDbyCertainCommit(commitId);
         Branch curBranch = getCurBranch();
         curBranch.move(commitId);
-        writeObject(join(BRANCH, curBranch.getBranchName()), curBranch); //TODO:tend to forget write
+        writeObject(join(BRANCH, curBranch.getBranchName()), curBranch);
         HashMap<String, String> curSA = getSA();
         curSA.clear();
         writeObject(STAGING_AREA, curSA);
@@ -669,12 +669,10 @@ public class Repository {
             message("Current branch fast-forwarded.");
             return;
         }
-        mergeByrules(split.getFileToBlob(), head.getFileToBlob(), other.getFileToBlob(), branchName);
+        mergeByrules(split.getFileToBlob(),
+                head.getFileToBlob(), other.getFileToBlob(), branchName);
         mergeCommit("Merged " + branchName + " " + "into " + getHEAD() + ".",
                 other.getCommitSHA1());
-//        Commit mergedCommit = getCurCommit();
-//        mergedCommit.addSecondParent(other.getCommitSHA1()); // TODO: think about this!!!!!!
-//        writeObject(join(COMMITS, mergedCommit.getCommitSHA1()), mergedCommit);
     }
 
     /** Returns the split point, which is the latest common ancestor
@@ -693,7 +691,8 @@ public class Repository {
             if (Objects.equals(curCheck.getMessage(), "initial commit")) {
                 return curCheck; // it's already the initial commit node
             }
-            curCheckParentId = (curCheck.sizeOfParent() == 1) ? curCheck.getFirstParent() : curCheck.getSecondParent();
+            curCheckParentId = (curCheck.sizeOfParent() == 1) ?
+                    curCheck.getFirstParent() : curCheck.getSecondParent();
             //curCheckParentId = curCheck.getFirstParent();
             curCheckParent = getComBySha1(curCheckParentId);
             if (checkedCommitIds.contains(curCheckParentId)) {
@@ -720,7 +719,8 @@ public class Repository {
             otherSha1 = other.get(filename);
             if (Objects.equals(otherSha1, splitSha1) || Objects.equals(headSha1, otherSha1)) {
                 continue;
-            } else if (Objects.equals(headSha1, splitSha1) && !Objects.equals(otherSha1, splitSha1)) {
+            } else if (Objects.equals(headSha1, splitSha1)
+                    && !Objects.equals(otherSha1, splitSha1)) {
                 if (otherSha1 != null) {
                     checkout(getBranchHeadId(branchName), filename);
                     addCommand(filename);
@@ -728,9 +728,9 @@ public class Repository {
                     restrictedDelete(filename);
                     addCommand(filename); // staged for removal
                 }
-            } else if (!Objects.equals(headSha1, splitSha1) ||
-                    (otherSha1 == null && !Objects.equals(headSha1, splitSha1)) ||
-                    (!Objects.equals(headSha1, otherSha1) && splitSha1 == null)) {
+            } else if (!Objects.equals(headSha1, splitSha1)
+                    || (otherSha1 == null && !Objects.equals(headSha1, splitSha1))
+                    || (!Objects.equals(headSha1, otherSha1) && splitSha1 == null)) {
                 stageMergeConflict(filename, headSha1, otherSha1);
                 hasConflict = true;
             }

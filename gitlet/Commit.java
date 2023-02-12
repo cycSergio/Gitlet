@@ -82,24 +82,24 @@ public class Commit implements Serializable {
     public String getCommitSHA1() {
         String strTrackings = this.fileToBlob.toString();
         String strTime = this.timestamp.toString();
-         return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
-   } // TODO: remember this!!!!!!! why you fail on merge-parent2!!!!!!!!
+        return Utils.sha1(this.message, this.parent.toString(), strTime, strTrackings);
+    }
 
     public HashMap<String, String> getFileToBlob() {
         return this.fileToBlob;
-   }
+    }
 
-   public String getFirstParent() {
+    public String getFirstParent() {
         return this.parent.get(0);
-   }
+    }
 
     public String getSecondParent() {
         return this.parent.get(1);
-   }
+    }
 
     public String getShortFirstParent() {
         return getFirstParent().substring(0, 7);
-   }
+    }
 
     public String getShortSecondParent() {
         return getSecondParent().substring(0, 7);
@@ -115,11 +115,12 @@ public class Commit implements Serializable {
 
     public String getMessage() {
         return this.message;
-   }
+    }
 
     // Thu Nov 9 20:00:00 2017 -0800
     public String getFormattedTime() {
-        SimpleDateFormat formatTime = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
+        SimpleDateFormat formatTime = new SimpleDateFormat(
+                "EEE MMM d HH:mm:ss yyyy Z", Locale.ENGLISH);
         return formatTime.format(this.timestamp);
-   }
+    }
 }

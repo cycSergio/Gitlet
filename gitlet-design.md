@@ -245,3 +245,7 @@ Remember the haveBirthday command from Lab6:
 3. <font color = pink>Write</font> the Dog object back to its file.
 
 Consider helper functions since you'll do this a lot.
+
+EXTRA: `add-remote`, `rm-remote`, `push`, `fetch`, `pull`. All the commands are significantly simplified
+from their git equivalents.
+

@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -288,7 +289,7 @@ public class Repository {
         logMes.append("Date: ").append(comTime).append("\n");
         logMes.append(comMes).append("\n");
         System.out.println(logMes);
-        // to sloppy??
+        // too sloppy??
     }
 
     /* Displays information about all commits ever made. The order of the commits
@@ -385,7 +386,7 @@ public class Repository {
     /** Return true if there are untracked files. */
     private static boolean checkUntrackedFiles() {
         // If a file in CWD is not tracked in the current Commit/SA, then it's untracked.
-        List<String> allCwdFiles = plainFilenamesIn(CWD);
+        List<String> allCwdFiles = getAllCWDfiles();
         HashMap<String, String> curTracking = getCurTrackings();
         HashMap<String, String> curSA = getSA();
         for (String cwdFile:allCwdFiles) {
@@ -398,10 +399,14 @@ public class Repository {
         return false;
     }
 
+    private static List<String> getAllCWDfiles() {
+        return plainFilenamesIn(CWD);
+    }
+
     /** A helper method to checks out all files from a certain commit
      *  and overwrites the current CWD files. */
     private static void overwriteCWDbyCertainCommit(String commitId) {
-        List<String> allCWDfiles = plainFilenamesIn(CWD);
+        List<String> allCWDfiles = getAllCWDfiles();
         Commit targetCom = getComBySha1(commitId);
         HashMap<String, String> targetTracking = targetCom.getFileToBlob();
         String targetSha1;
@@ -569,22 +574,49 @@ public class Repository {
 
         // then list modifications not staged
         System.out.println("=== Modifications Not Staged For Commit ===");
+        HashMap<String, String> curTracking = getCurTrackings();
+        List<String> allCWDfiles = getAllCWDfiles();
+        for (String curTrackingFile:curTracking.keySet()) {
+            File curPath = join(CWD, curTrackingFile);
+            if (allCWDfiles.contains(curTrackingFile)
+                    && !sha1(readContentsAsString(curPath)).equals(curTracking.get(curTrackingFile))) {
+                System.out.println(curTrackingFile + " (modified)");
+            } else if (!allCWDfiles.contains(curTrackingFile) && !curSA.containsKey(curTrackingFile)) {
+                System.out.println(curTrackingFile + " (deleted)");
+            }
+        }
+
+        for (String sa: curSA.keySet()) {
+            File curPath = join(CWD, sa);
+            if (allCWDfiles.contains(sa) && !sha1(readContentsAsString(curPath)).equals(curSA.get(sa))) {
+                System.out.println(sa + " (modified)");
+            } else if (!allCWDfiles.contains(sa)) {
+                System.out.println(sa + " (deleted)");
+            }
+        }
+
 
         System.out.println();
 
         // then list untracked files
         System.out.println("=== Untracked Files ===");
-//        List<String> allCWDfiles = plainFilenamesIn(CWD);
-//        Set<String>  trackings = getCurTrackings().keySet();
-//        Set<String> SA = curSA.keySet();
-//        trackings.addAll(SA);
-//        assert allCWDfiles != null;
-//        for (String filename:allCWDfiles) {
-//            if (!getCurTrackings().containsKey(filename)) {
-//                System.out.println(filename);
-//            }
-//        }
+        ArrayList<String> untrackedFiles= getUntrackedFiles();
+        untrackedFiles.forEach(System.out::println);
         System.out.println();
+    }
+
+    private static ArrayList<String> getUntrackedFiles() {
+        // If a file in CWD is not tracked in the current Commit/SA, then it's untracked.
+        List<String> allCwdFiles = getAllCWDfiles();
+        HashMap<String, String> curTracking = getCurTrackings();
+        HashMap<String, String> curSA = getSA();
+        ArrayList<String> untrackedFiles = new ArrayList<>();
+        for (String cwdFile:allCwdFiles) {
+            if (!curTracking.containsKey(cwdFile) && !curSA.containsKey(cwdFile)) {
+                untrackedFiles.add(cwdFile);
+            }
+        }
+        return untrackedFiles;
     }
 
     private static Boolean checkBranchExists(String branchName) {

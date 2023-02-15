@@ -1,27 +1,16 @@
 package gitlet;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.*;
-
 import static gitlet.Utils.*;
 
 
 /** Represents a gitlet repository.
- *  It's a good idea to give a description here of what else this Class
- *  does at a high level.
+ *  The main logic of Gitlet command happens here.
  *
  *  @author cyc
  */
 public class Repository {
-    /**
-     * add instance variables here.
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
-     */
-
     /**
      * The current working directory.
      */
@@ -31,7 +20,6 @@ public class Repository {
      */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
-    /* fill in the rest of this class. */
     public static final File BLOBS = join(GITLET_DIR, "blobs");
     public static final File COMMITS = join(GITLET_DIR, "commits");
     public static final File STAGING_AREA = join(GITLET_DIR, "index");

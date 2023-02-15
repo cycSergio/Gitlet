@@ -578,7 +578,7 @@ public class Repository {
             File curPath = join(CWD, sa);
             if (allCWDfiles.contains(sa) && !sha1(readContentsAsString(curPath)).equals(curSA.get(sa))) {
                 System.out.println(sa + " (modified)");
-            } else if (!allCWDfiles.contains(sa)) {
+            } else if (!allCWDfiles.contains(sa) && curSA.get(sa) != null) { // null means staged for removal
                 System.out.println(sa + " (deleted)");
             }
         }
@@ -588,7 +588,7 @@ public class Repository {
 
         // then list untracked files
         System.out.println("=== Untracked Files ===");
-        ArrayList<String> untrackedFiles= getUntrackedFiles();
+        ArrayList<String> untrackedFiles = getUntrackedFiles();
         untrackedFiles.forEach(System.out::println);
         System.out.println();
     }

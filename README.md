@@ -2,12 +2,14 @@
 ## 〇、项目概述
 用Java实现的一个Git版本管理系统，涵盖Git的基本功能。在IntelliJ IDEA中开发，以Remote JVM Debug进行调试。
 ## 一、内部结构
-现实中的Git本质上是一个key-value的数据库 + 哈希树形成的有向无环图。
+现实中的Git本质上是一个key-value的数据库 + 哈希树形成的有向无环图。 Gitlet的实现部分参考了真实Git的内部实现，其中部分命令是简化了的。和真实Git最大的差异在于Staging Area/Index，也就是
+暂存区的逻辑上，并由此导致了在此基础上实现的`add`, `commit`等命令也与真实Git的底层原理有所不同。<br>
 
-Gitlet的实现部分参考了真实Git的内部实现，其中部分命令是简化了的。和真实Git最大的差异在于Staging Area/Index，也就是
-暂存区的逻辑上，并由此导致了在此基础上实现的`add`, `commit`等命令也与真实Git的底层原理有所不同。
+<br>首先，Gitlet实现中有几个重要特性：
+- 一是仓库中的对象是content addressable的，通过SHA-1算法来实现。
+- 二是为了避免同一内容的反复序列化，需要把所有抽象设计中的pointer以字符串的形式进行存储。
 
-Gitlet中有几个重要的对象：Commit, Blob, Index。当然还有Branch等其他对象，但这三个是实现的基础。 <br>
+其次，Gitlet中有几个重要的对象：Commit, Blob, Index。当然还有Branch等其他对象，但这三个是实现的基础。 <br>
 ### Blob
 Blob对象是最底层的，存储着文件们的内容，不包含文件的其他诸如文件名等信息。每个Blob对象的文件名是自身内容的SHA-1 value，而自身内容来自于用户所要添加到暂存区的文件的内容本身。<br>
 当用户输入`java gitlet.Main add [filename]`以后，blobs路径下被添加一个新的blob对象，
@@ -19,9 +21,6 @@ fileToBlob（指当前commit所追踪的文件，是一个HashMap，key为文件
 ### Index
 负责把正在stage的文件所对应的文件名和相应的Blob对象的文件名分别作为key和value存进Staging Area中。Staging Area在我的实现中是一个Hash Map数据结构。
 
-<br>最后，Gitlet实现中有几个重要特性：
-- 一是仓库中的对象是content addressable的，通过SHA-1算法来实现。
-- 二是为了避免同一内容的反复序列化，需要把所有抽象设计中的pointer以字符串的形式进行存储。
 
 ## 二、实现命令
 1. `init`<br>

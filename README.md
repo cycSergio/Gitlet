@@ -1,7 +1,6 @@
 # Gitlet
 ## 〇、项目概述
-用Java实现的一个Git版本管理系统。
-使用IntelliJ IDEA开发，测试中使用了集成测试和JVM进行调试。
+用Java实现的一个Git版本管理系统，涵盖Git的基本功能。在IntelliJ IDEA中开发，以Remote JVM Debug进行调试。
 ## 一、内部结构
 现实中的Git本质上是一个key-value的数据库 + 哈希树形成的有向无环图。
 
@@ -90,6 +89,9 @@ random.stuff
 [![Watch the video](./demo-page.jpg)](./git-demo.gif)
 
 ## 四、总结与反思
-两部分，实现过程中和测试过程中。
+两部分，实现过程中和调试过程中。
 
 ## // TODO：
+添加远程命令:
+`add-remote` `re-remote`
+`push` `pull` `fetch`

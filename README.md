@@ -86,6 +86,9 @@ random.stuff
 <br> 这个是比较复杂的命令。<br>`java gitlet.Main merge [branch name]`, 根据给定分支头节点、当前节点和双方的split point
 中文件的修改、删除情况，可以归纳出8条合并的规则，由此进行分支的合并。
 ## 三、Demo
+
+[![Watch the video](./demo-page.jpg)](./git-demo.gif)
+
 ## 四、总结与反思
 两部分，实现过程中和测试过程中。
 
